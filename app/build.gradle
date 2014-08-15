@@ -1,0 +1,35 @@
+apply plugin: 'com.android.application'
+
+android {
+    signingConfigs {
+        config {
+            keyAlias 'caoyang'
+            keyPassword '8802616a!'
+            storeFile file('/Users/yunshansimon/mypebble-project/YangTsaoKey')
+            storePassword '8802616a!'
+        }
+    }
+    compileSdkVersion 16
+    buildToolsVersion '20.0.0'
+    defaultConfig {
+        applicationId 'yangtsao.pebblemessengerpro'
+        minSdkVersion 16
+        targetSdkVersion 16
+        versionCode 1
+        versionName '1.0'
+        signingConfig signingConfigs.config
+    }
+    buildTypes {
+        release {
+            runProguard false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
+        }
+    }
+    productFlavors {
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}

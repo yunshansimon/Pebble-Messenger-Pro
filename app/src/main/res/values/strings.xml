@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Pebble Messenger Pro</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="accessibility_description" tools:ignore="MissingTranslation">This allows Pebble Messenger to forward notifications to your pebble!</string>
+
+</resources>
