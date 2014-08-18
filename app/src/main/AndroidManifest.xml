@@ -8,7 +8,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".MainActivity"
+            android:name=".activities.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -18,7 +18,7 @@
         </activity>
 
         <service
-            android:name="yangtsao.pebblemessengerpro.services.NotificationService"
+            android:name=".services.NotificationService"
             android:description="@string/accessibility_description"
             android:label="@string/app_name"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" >
@@ -31,10 +31,8 @@
                 <action android:name="android.intent.action.PHONE_STATE" />
             </intent-filter>
         </service>
-        <service
-            android:name=".services.NotificationService"
-            android:exported="false" >
-        </service>
+
     </application>
 
 </manifest>
+

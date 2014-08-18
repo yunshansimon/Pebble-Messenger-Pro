@@ -5,6 +5,8 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
 
-    <string name="accessibility_description" tools:ignore="MissingTranslation">This allows Pebble Messenger to forward notifications to your pebble!</string>
+    <string name="accessibility_description" >This allows Pebble Messenger to forward notifications to your pebble!</string>
 
+    <string name="notif_started_loading" >Creating Unicode character database&#8230;</string>
+    <string name="notif_finished_loading" >Finished loading font database! Tap to dismiss&#8320;</string>
 </resources>

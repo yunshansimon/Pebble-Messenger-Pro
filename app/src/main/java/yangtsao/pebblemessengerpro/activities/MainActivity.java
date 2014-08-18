@@ -1,9 +1,11 @@
-package yangtsao.pebblemessengerpro;
+package yangtsao.pebblemessengerpro.activities;
 
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import yangtsao.pebblemessengerpro.R;
 
 
 public class MainActivity extends Activity {
