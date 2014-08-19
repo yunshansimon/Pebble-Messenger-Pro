@@ -28,7 +28,7 @@ public class FontDbHandler extends SQLiteOpenHelper {
     // All Static variables
     // Database Version
     public static final int           DATABASE_VERSION = 3;
-
+    private final String TAG_NAME="FontDbHandler";
     // Database Name
     private static final String        DATABASE_NAME    = "unicodeStorage";
 
@@ -44,6 +44,7 @@ public class FontDbHandler extends SQLiteOpenHelper {
     private final Context _context;
 
     private SQLiteDatabase _db;
+
 
     private final FontDbLoadNotifier _notifier;
 
@@ -86,7 +87,7 @@ public class FontDbHandler extends SQLiteOpenHelper {
 
             @Override
             public void run() {
-                Constants.log("Database", "Starting db creation");
+                Constants.log(TAG_NAME, "Starting db creation");
 
                 String CREATE_FONT_TABLE = "CREATE TABLE " + TABLE_HEX + "(" + KEY_CODEPOINT + " TEXT PRIMARY KEY,"
                         + KEY_HEX + " TEXT " + ")";
@@ -132,15 +133,15 @@ public class FontDbHandler extends SQLiteOpenHelper {
                         SharedPreferences.Editor editor = sharedPref.edit();
 
                         editor.putBoolean(Constants.DATABASE_READY, true);
-                        editor.commit();
+                        editor.apply();
 
                         _notifier.finish(count, FontDbHandler.FILE_LINECOUNT, 10000);
                     }
 
-                    Constants.log("Database", "Finished inserting " + count + " records");
+                    Constants.log(TAG_NAME, "Finished inserting " + count + " records");
 
                 } catch (Exception e) {
-                    Constants.log("Database", "Error inserting records! " + e.getMessage());
+                    Constants.log(TAG_NAME, "Error inserting records! " + e.getMessage());
                 }
             }
         }).start();
@@ -201,7 +202,7 @@ public class FontDbHandler extends SQLiteOpenHelper {
         if (cursor != null) {
             if (cursor.moveToFirst()) {
                 Font font = new Font(cursor.getString(0), cursor.getString(1));
-
+                cursor.close();
                 // return contact
                 return font;
             }
@@ -277,7 +278,7 @@ public class FontDbHandler extends SQLiteOpenHelper {
                 fontList.add(font);
             } while (cursor.moveToNext());
         }
-
+        cursor.close();
         // return contact list
         return fontList;
     }
