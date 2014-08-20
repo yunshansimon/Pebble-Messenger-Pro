@@ -1,5 +1,6 @@
 package yangtsao.pebblemessengerpro.services;
 
+import android.app.Application;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
@@ -9,19 +10,28 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
+import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.text.format.Time;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Deque;
+import java.util.GregorianCalendar;
 
 import yangtsao.pebblemessengerpro.Constants;
+import yangtsao.pebblemessengerpro.R;
 import yangtsao.pebblemessengerpro.db.FontDbHandler;
 import yangtsao.pebblemessengerpro.db.MessageDbHandler;
 import yangtsao.pebblemessengerpro.models.CharacterMatrix;
 import yangtsao.pebblemessengerpro.models.Font;
+import yangtsao.pebblemessengerpro.models.PebbleCall;
 import yangtsao.pebblemessengerpro.models.PebbleMessage;
 
 public class MessageProcessingService extends Service {
@@ -33,46 +43,42 @@ public class MessageProcessingService extends Service {
     public static final int MSG_NEW_MESSAGE        =0;
     public static final int MSG_NEW_CALL           =1;
     public static final int MSG_MESSAGE_READY      =2;
-    public static final int MSG_GET_MESSAGE_TABLE  =3;
-    public static final int MSG_GET_CALL_TABLE     =4;
-    public static final int MSG_GET_MESSAGE        =5;
-    public static final int MSG_GET_CALL           =6;
-    public static final int MSG_CLEAN              =7;
+    public static final int MSG_CALL_READY         =3;
+    public static final int MSG_GET_MESSAGE_TABLE  =4;
+    public static final int MSG_GET_CALL_TABLE     =5;
+    public static final int MSG_GET_MESSAGE        =6;
+    public static final int MSG_GET_CALL           =7;
+    public static final int MSG_CLEAN              =8;
 
+    private static final int INNER_MESSAGE_PROCEED=0;
+    private static final int INNER_CALL_PROCEED=1;
+    public static final String PROCEED_MSG="proceed_message";
+    public static final String PROCEED_CALL="proceed_call";
 
     public MessageProcessingService() {
     }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        MessageProcessingService._context = getApplicationContext();
-        fdb=new FontDbHandler(_context);
-        fdb.open();
-        mdb=new MessageDbHandler(_context);
-        mdb.open();
-        bindService(new Intent(this, PebbleCenter.class), connToPebbleCenter,
-                Context.BIND_AUTO_CREATE);
-    }
+    public Messenger mMessenger;
+    private Handler processHandler;
+    private Thread proceedthread;
+    private Handler messageHandler;
+    private File watchFile;
+    private long      lastChange;
+    private boolean   quiet_hours           = false;
+    private Calendar quiet_hours_before    = null;
+    private Calendar      quiet_hours_after     = null;
+    private boolean   callQuietEnable       = false;
 
-    @Override
-    public void onDestroy() {
-        fdb.close();
-        mdb.close();
-        super.onDestroy();
-    }
-
-    final Messenger mMessengerHandler= new Messenger(new MessageHandler());
-    Messenger mPebbleCenterHandler =null;
+    private Messenger mPebbleCenter =null;
     private final ServiceConnection connToPebbleCenter =new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            mPebbleCenterHandler=new Messenger(iBinder);
+            mPebbleCenter=new Messenger(iBinder);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
-            mPebbleCenterHandler=null;
+            mPebbleCenter=null;
         }
     };
 
@@ -80,20 +86,114 @@ public class MessageProcessingService extends Service {
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
         //throw new UnsupportedOperationException("Not yet implemented");
-        return mMessengerHandler.getBinder();
+        return mMessenger.getBinder();
+    }
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        watchFile = new File(getFilesDir() + "PrefsChanged.none");
+        if (!watchFile.exists()) {
+            try {
+                watchFile.createNewFile();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            watchFile.setLastModified(System.currentTimeMillis());
+        }
+        loadPrefs();
+        proceedthread=new ProcessThread();
+        proceedthread.start();
+        messageHandler=new MessageHandler(Looper.getMainLooper());
+        mMessenger=new Messenger(messageHandler);
+        MessageProcessingService._context = getApplicationContext();
+        fdb=new FontDbHandler(_context);
+        fdb.open();
+        mdb=new MessageDbHandler(_context);
+        mdb.open();
+        bindService(new Intent(this, PebbleCenter.class), connToPebbleCenter,
+                Context.BIND_AUTO_CREATE);
+
     }
 
-    static class MessageHandler extends Handler{
+    @Override
+    public void onDestroy() {
+        fdb.close();
+        mdb.close();
+        unbindService(connToPebbleCenter);
+        super.onDestroy();
+    }
+
+    class MessageHandler extends Handler{
+        public MessageHandler(Looper looper){
+            super(looper);
+        }
+
         @Override
         public void handleMessage(Message msg) {
+            if (watchFile.lastModified() > lastChange) {
+                loadPrefs();
+            }
             switch (msg.what){
                 case MSG_NEW_MESSAGE:
-                    addNewMessage(msg.getData());
+                    if (quiet_hours) {
 
+                        Calendar c = Calendar.getInstance();
+                        Calendar now = new GregorianCalendar(0, 0, 0, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE));
+                        Constants.log(TAG_NAME, "Checking quiet hours. Now: " + now.toString() + " vs "
+                                + quiet_hours_before.toString() + " and " + quiet_hours_after.toString());
+                        if (now.before(quiet_hours_before) || now.after(quiet_hours_after)) {
+                            Constants.log(TAG_NAME, "Time is before or after the quiet hours time. Returning.");
+                            addNewMessage(msg.getData(), MessageDbHandler.NEW_ICON);
+                        } else {
+                            addNewMessage(msg.getData(), MessageDbHandler.OLD_ICON);
+                            Message innerMsg=processHandler.obtainMessage(INNER_MESSAGE_PROCEED);
+                            innerMsg.setData(msg.getData());
+                            processHandler.sendMessage(innerMsg);
+                        }
+                    }
                     break;
                 case MSG_NEW_CALL:
+                    if (callQuietEnable) {
+
+                        Calendar c = Calendar.getInstance();
+                        Calendar now = new GregorianCalendar(0, 0, 0, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE));
+                        Constants.log(TAG_NAME, "Checking quiet hours. Now: " + now.toString() + " vs "
+                                + quiet_hours_before.toString() + " and " + quiet_hours_after.toString());
+                        if (now.before(quiet_hours_before) || now.after(quiet_hours_after)) {
+                            Constants.log(TAG_NAME, "Time is before or after the quiet hours time. Returning.");
+                            addNewCall(msg.getData(),MessageDbHandler.NEW_ICON);
+                        } else {
+                            addNewCall(msg.getData(),MessageDbHandler.OLD_ICON);
+                            Message innerMsg=processHandler.obtainMessage(INNER_CALL_PROCEED);
+                            innerMsg.setData(msg.getData());
+                            processHandler.sendMessage(innerMsg);
+                        }
+                    }
                     break;
-                case MSG_MESSAGE_READY:
+                case MSG_MESSAGE_READY: {
+                    Message msgToPebble = Message.obtain();
+                    msgToPebble.what = PebbleCenter.PEBBLE_SEND_MESSAGE;
+                    msgToPebble.setData(msg.getData());
+                    try {
+                        mPebbleCenter.send(msgToPebble);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                        Constants.log(TAG_NAME, "Error with sending message to PebbleCenter.");
+                    }
+                }
+                    break;
+                case MSG_CALL_READY:{
+                    Message msgToPebble=Message.obtain();
+                    msgToPebble.what=PebbleCenter.PEBBLE_SEND_CALL;
+                    msgToPebble.setData(msg.getData());
+                    try {
+                        mPebbleCenter.send(msgToPebble);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                        Constants.log(TAG_NAME,"Error with sending message to PebbleCenter.");
+                    }
+                    }
                     break;
                 case MSG_GET_MESSAGE_TABLE:
                     break;
@@ -110,134 +210,308 @@ public class MessageProcessingService extends Service {
             }
         }
 
-        private void addNewMessage(Bundle b){
+        private void addNewMessage(Bundle b, String icon){
             Time nowTime= new Time();
             nowTime.setToNow();
-            mdb.addMessage(nowTime,b.getString(MessageDbHandler.COL_MESSAGE_APP),b.getString(MessageDbHandler.COL_MESSAGE_CONTENT));
+            mdb.addMessage(nowTime,b.getString(MessageDbHandler.COL_MESSAGE_APP),b.getString(MessageDbHandler.COL_MESSAGE_CONTENT),icon);
         }
 
-        private void processMessage(Bundle b){
+        private void addNewCall(Bundle b , String icon) {
+            Time nowTime=new Time();
+            nowTime.setToNow();
+            mdb.addCall(nowTime,b.getString(MessageDbHandler.COL_CALL_NUMBER),b.getString(MessageDbHandler.COL_CALL_NAME),icon);
+        }
+    }
+
+    class InnerThreadHandler extends Handler{
+        public InnerThreadHandler(Looper looper){
+            super(looper);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what){
+                case INNER_MESSAGE_PROCEED:
+                {   PebbleMessage pMessage=processMessage(msg.getData());
+                    Message msgReply= messageHandler.obtainMessage(MSG_MESSAGE_READY);
+                    Bundle tmpB=new Bundle();
+                    tmpB.putSerializable(PROCEED_MSG,pMessage);
+                    msgReply.setData(tmpB);
+                    messageHandler.sendMessage(msgReply);
+                }
+                    break;
+                case INNER_CALL_PROCEED: {
+                    PebbleCall pCall = processCall(msg.getData());
+                    Message msgReply = messageHandler.obtainMessage(MSG_CALL_READY);
+                    Bundle tmpB = new Bundle();
+                    tmpB.putSerializable(PROCEED_CALL, pCall);
+                    msgReply.setData(tmpB);
+                    messageHandler.sendMessage(msgReply);
+                }
+                    break;
+                default:
+                    super.handleMessage(msg);
+            }
+
+        }
+
+        private PebbleMessage processMessage(Bundle b){
+            String originalMessage;
             if (!isFontDBReady()){
                 Constants.log(TAG_NAME,"Font data base is not ready, processing stop!");
-                return;
+                originalMessage= getString(R.string.error_fontbase_notready);
+            }else {
+                originalMessage = b.getString(MessageDbHandler.COL_MESSAGE_CONTENT).substring(0, 179).replaceAll("\\n+", "\n");
             }
-            final String tmpString=b.getString(MessageDbHandler.COL_MESSAGE_CONTENT).substring(0,179);
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    String originalMessage=tmpString;
-                    PebbleMessage message = new PebbleMessage();
-                    // Clear the characterQueue, just in case
-                    Deque<CharacterMatrix> characterQueue = new ArrayDeque<CharacterMatrix>();
-                    while(originalMessage.length()>0)
-                    {
-                        int row = 1;
-                        int col = 0;
-                        int codepoint = originalMessage.codePointAt(0);
-                        if (codepoint == 0) {
-                            break;
-                        }
-                        Constants.log("codepoint", "char='" + (char) codepoint + "' code=" + String.valueOf(codepoint));
-                        if (codepoint <= 127) {
-                            if (codepoint == 10) {
-                                row++;
-                                col = 0;
-                                message.AddCharToAscMsg(originalMessage.charAt(0));
-                            } else {
-                                if (col < 16) {
-                                    if (col == 15) {
-                                        if (message.getAscMsg().matches("\\w\\z") && originalMessage.matches("\\A\\w")) {
-                                            message.AddStringToAscMsg("-\n");
-                                            row++;
-                                            col = 0;
-                                        }
-                                    }
-
-                                    col++;
-                                    message.AddCharToAscMsg(originalMessage.charAt(0));
-                                } else {
-                                    message.AddCharToAscMsg('\n');
-                                    message.AddCharToAscMsg(originalMessage.charAt(0));
+            PebbleMessage message = new PebbleMessage();
+            // Clear the characterQueue, just in case
+            Deque<CharacterMatrix> characterQueue = new ArrayDeque<CharacterMatrix>();
+            while(originalMessage.length()>0)
+            {
+                int row = 1;
+                int col = 0;
+                int codepoint = originalMessage.codePointAt(0);
+                if (codepoint == 0) {
+                    break;
+                }
+                Constants.log("codepoint", "char='" + (char) codepoint + "' code=" + String.valueOf(codepoint));
+                if (codepoint <= 127) {
+                    if (codepoint == 10) {
+                        row++;
+                        col = 0;
+                        message.AddCharToAscMsg(originalMessage.charAt(0));
+                    } else {
+                        if (col < 16) {
+                            if (col == 15) {
+                                if (message.getAscMsg().matches("\\w\\z") && originalMessage.matches("\\A\\w")) {
+                                    message.AddStringToAscMsg("-\n");
                                     row++;
-                                    col = 1;
+                                    col = 0;
                                 }
                             }
 
+                            col++;
+                            message.AddCharToAscMsg(originalMessage.charAt(0));
                         } else {
-                            String originalHex;
-                            String codepointStr = Integer.toHexString(codepoint).toUpperCase();
-                            // Constants.log("codepoint", "codepoint=" +
-                            // String.valueOf(codepoint) + " codeStr=" + codepointStr);
-                            if (codepointStr.length() < 4) {
-                                codepointStr = ("0000" + codepointStr).substring(codepointStr.length());
-                            }
-                            Constants.log(TAG_NAME, "codepoint=" + String.valueOf(codepoint) + " codeStr=" + codepointStr);
-                            Font font = fdb.getFont(codepointStr);
-                            if (font == null) {
-                                Constants.log(TAG_NAME, "font is null! codepoint=[" + String.valueOf(codepoint) + "] char=["
-                                        + (char) codepoint + "]");
-                                originalMessage = originalMessage.substring(1);
-                                continue;
-                                // originalHex =
-                                // "004000E001F003F8071C0C061E473FE77FE7FFC7FF8F7F1F3F3F1FFF0FBE071C";
-                            } else {
-                                originalHex = font.getHex();
-                            }
-                            // Constants.log("codepoint", "char='" + (char) codepoint +
-                            // "' hex=" + originalHex);
-                            CharacterMatrix c = new CharacterMatrix(originalHex);
-
-                            if (c.getWidthBytes() == 2) {
-                                if (col < 15) {
-                                    c.setPos(row, col + 1);
-                                    message.AddStringToAscMsg("  ");
-                                    col += 2;
-                                } else {
-                                    message.AddCharToAscMsg('\n');
-                                    message.AddStringToAscMsg("  ");
-                                    row++;
-                                    col = 0;
-                                    c.setPos(row, col + 1);
-                                    col += 2;
-                                }
-
-                            } else {
-                                if (col < 16) {
-                                    c.setPos(row, col + 1);
-                                    message.AddCharToAscMsg(' ');
-                                    col++;
-                                } else {
-                                    message.AddCharToAscMsg('\n');
-                                    message.AddCharToAscMsg(' ');
-                                    row++;
-                                    col = 0;
-                                    c.setPos(row, col + 1);
-                                    col++;
-                                }
-
-                            }
-
-                            characterQueue.add(c);
-
+                            message.AddCharToAscMsg('\n');
+                            message.AddCharToAscMsg(originalMessage.charAt(0));
+                            row++;
+                            col = 1;
                         }
-
-                        if (row > 8 && (col > 10 || originalMessage.charAt(0) == '\n')) {
-                            Constants.log("codepoint", "too many chars!the end char='" + (char) codepoint + "'");
-                            message.AddStringToAscMsg("...");
-
-                            break;
-                        }
-                        originalMessage = originalMessage.substring(1);
                     }
 
-                    message.setCharacterQueue(characterQueue);
+                } else {
+                    String originalHex;
+                    String codepointStr = Integer.toHexString(codepoint).toUpperCase();
+
+                    if (codepointStr.length() < 4) {
+                        codepointStr = ("0000" + codepointStr).substring(codepointStr.length());
+                    }
+                    Constants.log(TAG_NAME, "codepoint=" + String.valueOf(codepoint) + " codeStr=" + codepointStr);
+                    Font font = fdb.getFont(codepointStr);
+                    if (font == null) {
+                        Constants.log(TAG_NAME, "font is null! codepoint=[" + String.valueOf(codepoint) + "] char=["
+                                + (char) codepoint + "]");
+                        originalMessage = originalMessage.substring(1);
+                        continue;
+
+                    } else {
+                        originalHex = font.getHex();
+                    }
+
+                    CharacterMatrix c = new CharacterMatrix(originalHex);
+
+                    if (c.getWidthBytes() == 2) {
+                        if (col < 15) {
+                            c.setPos(row, col + 1);
+                            message.AddStringToAscMsg("  ");
+                            col += 2;
+                        } else {
+                            message.AddCharToAscMsg('\n');
+                            message.AddStringToAscMsg("  ");
+                            row++;
+                            col = 0;
+                            c.setPos(row, col + 1);
+                            col += 2;
+                        }
+
+                    } else {
+                        if (col < 16) {
+                            c.setPos(row, col + 1);
+                            message.AddCharToAscMsg(' ');
+                            col++;
+                        } else {
+                            message.AddCharToAscMsg('\n');
+                            message.AddCharToAscMsg(' ');
+                            row++;
+                            col = 0;
+                            c.setPos(row, col + 1);
+                            col++;
+                        }
+
+                    }
+
+                    characterQueue.add(c);
+
                 }
-            }).run();
+
+                if (row > 8 && (col > 10 || originalMessage.charAt(0) == '\n')) {
+                    Constants.log("codepoint", "too many chars!the end char='" + (char) codepoint + "'");
+                    message.AddStringToAscMsg("...");
+
+                    break;
+                }
+                originalMessage = originalMessage.substring(1);
+            }
+
+            message.setCharacterQueue(characterQueue);
+            return message;
+        }
+
+        private PebbleCall processCall(Bundle b) {
+            // This method not only polls the database but waits for it to be
+            // ready
+            // in the event it is loading.
+            String phone=b.getString(MessageDbHandler.COL_CALL_NUMBER);
+            String originalMessage=b.getString(MessageDbHandler.COL_CALL_NAME);
+            if (!isFontDBReady()) {
+                Constants.log(TAG_NAME, "Database not ready after waiting!");
+                originalMessage=phone;
+            }
+
+            PebbleCall message = new PebbleCall();
+            message.setPhoneNum(phone);
+            // Clear the characterQueue, just in case
+            Deque<CharacterMatrix> characterQueue = new ArrayDeque<CharacterMatrix>();
+            int row = 1;
+            int col = 0;
+
+            while (originalMessage.length() > 0) {
+
+                int codepoint = originalMessage.codePointAt(0);
+                if (codepoint == 0) {
+                    break;
+                }
+                Constants.log("codepoint", "char='" + (char) codepoint + "' code=" + String.valueOf(codepoint));
+                if (codepoint <= 127) {
+                    if (codepoint == 10) {
+                        row++;
+                        col = 0;
+                        message.AddCharToAscMsg(originalMessage.charAt(0));
+                    } else {
+                        if (col < 8) {
+                            if (col == 7) {
+                                if (message.getAscMsg().matches("\\w\\z") && originalMessage.matches("\\A\\w")) {
+                                    message.AddStringToAscMsg("-\n");
+                                    row++;
+                                    col = 0;
+                                }
+                            }
+
+                            col++;
+                            message.AddCharToAscMsg(originalMessage.charAt(0));
+                        } else {
+                            message.AddCharToAscMsg('\n');
+                            message.AddCharToAscMsg(originalMessage.charAt(0));
+                            row++;
+                            col = 1;
+                        }
+                    }
+
+                } else {
+                    String originalHex;
+                    String codepointStr = Integer.toHexString(codepoint).toUpperCase();
+
+                    if (codepointStr.length() < 4) {
+                        codepointStr = ("0000" + codepointStr).substring(codepointStr.length());
+                    }
+                    Constants.log("codepoint", "codepoint=" + String.valueOf(codepoint) + " codeStr=" + codepointStr);
+                    Font font = fdb.getFont(codepointStr);
+                    if (font == null) {
+                        Constants.log(TAG_NAME, "font is null! codepoint=[" + String.valueOf(codepoint) + "] char=["
+                                + (char) codepoint + "]");
+                        originalMessage = originalMessage.substring(1);
+                        continue;
+                    } else {
+                        originalHex = font.getHex();
+                    }
+
+                    CharacterMatrix c = new CharacterMatrix(originalHex);
+
+                    if (c.getWidthBytes() == 2) {
+                        if (col < 7) {
+                            c.setPos(row, col + 1);
+                            message.AddStringToAscMsg("  ");
+                            col += 2;
+                        } else {
+                            message.AddCharToAscMsg('\n');
+                            message.AddStringToAscMsg("  ");
+                            row++;
+                            col = 0;
+                            c.setPos(row, col + 1);
+                            col += 2;
+                        }
+
+                    } else {
+                        if (col < 8) {
+                            c.setPos(row, col + 1);
+                            message.AddCharToAscMsg(' ');
+                            col++;
+                        } else {
+                            message.AddCharToAscMsg('\n');
+                            message.AddCharToAscMsg(' ');
+                            row++;
+                            col = 0;
+                            c.setPos(row, col + 1);
+                            col++;
+                        }
+
+                    }
+
+                    characterQueue.add(c);
+
+                }
+
+                if (row == 3 && (col > 4 || originalMessage.charAt(0) == '\n')) {
+                    Constants.log("codepoint", "too many chars!the end char='" + (char) codepoint + "'");
+                    message.AddStringToAscMsg("...");
+
+                    break;
+                }
+                originalMessage = originalMessage.substring(1);
+            }
+
+            message.setCharacterQueue(characterQueue);
+
+            return message;
         }
 
         private boolean isFontDBReady(){
             SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(_context);
             return sharedPref.getBoolean(Constants.DATABASE_READY, false);
         }
+
+    }
+
+    class ProcessThread extends Thread{
+        @Override
+        public void run() {
+            Looper.prepare();
+            processHandler=new InnerThreadHandler(Looper.myLooper());
+            Looper.loop();
+        }
+    }
+
+    private void loadPrefs() {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        quiet_hours = sharedPref.getBoolean(Constants.PREFERENCE_QUIET_HOURS, false);
+        callQuietEnable = sharedPref.getBoolean(Constants.PREFERENCE_CALL_QUIET, false);
+        if (quiet_hours) {
+            String[] pieces = sharedPref.getString(Constants.PREFERENCE_QUIET_HOURS_BEFORE, "00:00").split(":");
+            quiet_hours_before = new GregorianCalendar(0, 0, 0, Integer.parseInt(pieces[0]), Integer.parseInt(pieces[1]));
+            pieces = sharedPref.getString(Constants.PREFERENCE_QUIET_HOURS_AFTER, "23:59").split(":");
+            quiet_hours_after = new GregorianCalendar(0, 0, 0, Integer.parseInt(pieces[0]), Integer.parseInt(pieces[1]));
+        }
+        lastChange = watchFile.lastModified();
     }
 }

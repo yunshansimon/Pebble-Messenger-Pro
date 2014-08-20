@@ -20,11 +20,14 @@ public class MessageDbHandler extends SQLiteOpenHelper {
     private static final String DBNAME   ="messagedb.sqlite";
     private static final int VERSION     =1;
     //message table
+    public static final String NEW_ICON="!";
+    public static final String OLD_ICON=".";
     public static final String TABLE_MESSAGE_NAME="MESSAGES";
     public static final String COL_MESSAGE_ID="ID";
     public static final String COL_MESSAGE_TIME="RTIME";
     public static final String COL_MESSAGE_APP="APPNAME";
     public static final String COL_MESSAGE_CONTENT="CONTENT";
+    public static final String COL_MESSAGE_NEW="NEW";
 
     //call table
     public static final String TABLE_CALL_NAME="CALLS";
@@ -32,6 +35,7 @@ public class MessageDbHandler extends SQLiteOpenHelper {
     public static final String COL_CALL_TIME="RTIME";
     public static final String COL_CALL_NUMBER="NUMBER";
     public static final String COL_CALL_NAME="NAME";
+    public static final String COL_CALL_NEW="NEW";
 
     private final Context _context;
     private final int MAXSTORE=10;
@@ -51,10 +55,10 @@ public class MessageDbHandler extends SQLiteOpenHelper {
             public void run() {
                 Constants.log("Database", "Starting messagedb creation");
                 String CREATE_FONT_TABLE = "CREATE TABLE " + TABLE_MESSAGE_NAME + "(" + COL_MESSAGE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
-                        + COL_MESSAGE_TIME + " TEXT," + COL_MESSAGE_APP + " TEXT," + COL_MESSAGE_CONTENT + " TEXT "  +   ")";
+                        + COL_MESSAGE_TIME + " TEXT," + COL_MESSAGE_APP + " TEXT," + COL_MESSAGE_CONTENT + " TEXT "  + COL_MESSAGE_NEW  +  " TEXT)";
                 dbThread.execSQL(CREATE_FONT_TABLE);
                 CREATE_FONT_TABLE ="CREATE TABLE " + TABLE_CALL_NAME + "(" + COL_CALL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
-                        + COL_CALL_TIME + " TEXT," + COL_CALL_NUMBER + " TEXT," + COL_CALL_NAME + " TEXT "  +   ")";
+                        + COL_CALL_TIME + " TEXT," + COL_CALL_NUMBER + " TEXT," + COL_CALL_NAME + " TEXT "  + COL_CALL_NEW  + " TEXT)";
                 dbThread.execSQL(CREATE_FONT_TABLE);
             }
 
@@ -95,29 +99,31 @@ public class MessageDbHandler extends SQLiteOpenHelper {
             cursor.moveToFirst();
             int did=cursor.getInt(0);
             cursor.close();
-            String deleteQuery="DELETE FROM " + tableName + " WHERE ID=" + String.valueOf(did);
+            String deleteQuery="DELETE FROM " + tableName + " WHERE ID =" + String.valueOf(did);
             _db.execSQL(deleteQuery);
         }else {
             cursor.close();
         }
     }
 
-    public long addMessage(Time timeStamp, String appName, String messageBody){
+    public long addMessage(Time timeStamp, String appName, String messageBody, String newIcon){
         keepMaxRecord(TABLE_MESSAGE_NAME,MAXSTORE);
         ContentValues values = new ContentValues();
         values.put(COL_MESSAGE_TIME,timeStamp.format2445());
         values.put(COL_MESSAGE_APP,appName);
         values.put(COL_MESSAGE_CONTENT,messageBody);
+        values.put(COL_MESSAGE_NEW, newIcon);
         return _db.insertOrThrow(TABLE_MESSAGE_NAME,null,values);
 
     }
 
-    public long addCall(Time timeStamp, String callNumber, String name){
+    public long addCall(Time timeStamp, String callNumber, String name , String newIcon){
         keepMaxRecord(TABLE_CALL_NAME,MAXSTORE);
         ContentValues values = new ContentValues();
         values.put(COL_CALL_TIME,timeStamp.format2445());
         values.put(COL_CALL_NUMBER,callNumber);
         values.put(COL_CALL_NAME,name);
+        values.put(COL_CALL_NEW, newIcon);
         return _db.insertOrThrow(TABLE_CALL_NAME,null,values);
     }
 
@@ -149,7 +155,7 @@ public class MessageDbHandler extends SQLiteOpenHelper {
                     }else {
                         messageTable.append("[<1 Mins]");
                     }
-                    messageTable.append(" " + cursor.getString(2));
+                    messageTable.append(" " + cursor.getString(2) + cursor.getString(4));
                     messageTable.append("\n");
                 }else if (counter>toPos){
                    break;
@@ -173,6 +179,11 @@ public class MessageDbHandler extends SQLiteOpenHelper {
         if (cursor.getCount()>0){
             cursor.moveToFirst();
             content=cursor.getString(3);
+            if (cursor.getString(4).equalsIgnoreCase(NEW_ICON)) {
+                ContentValues values = new ContentValues();
+                values.put(COL_MESSAGE_NEW, OLD_ICON);
+                _db.update(TABLE_MESSAGE_NAME, values, "ID =" + String.valueOf(ID), null);
+            }
         }else{
             content="";
         }
@@ -191,6 +202,11 @@ public class MessageDbHandler extends SQLiteOpenHelper {
             cursor.moveToFirst();
             content[0]=cursor.getString(2);
             content[1]=cursor.getString(3);
+            if (cursor.getString(4).equalsIgnoreCase(NEW_ICON)) {
+                ContentValues values = new ContentValues();
+                values.put(COL_CALL_NEW, OLD_ICON);
+                _db.update(TABLE_CALL_NAME, values, "ID =" + String.valueOf(ID), null);
+            }
         }else{
             content[0]="";
             content[1]="";
@@ -200,6 +216,6 @@ public class MessageDbHandler extends SQLiteOpenHelper {
     }
 
     public void cleanAll(){
-        onUpgrade(_db,1,1);
+        onUpgrade(_db,VERSION,VERSION);
     }
 }

@@ -25,6 +25,11 @@ public class Constants {
     public static final String  PREFERENCE_PACKAGE_LIST               = "pref_package_list";
     public static final String  PREFERENCE_NOTIF_SCREEN_ON            = "pref_notif_screen_on";
     public static final String  PREFERENCE_MESSAGE_SCALE              = "pref_message_scale";
+    public static final String  PREFERENCE_CALL_ENABLE                = "pref_call_enable";
+    public static final String  PREFERENCE_CALL_QUIET                 = "pref_call_quiet";
+    public static final String  PREFERENCE_QUIET_HOURS                = "pref_dnd_time_enabled";
+    public static final String  PREFERENCE_QUIET_HOURS_BEFORE         = "pref_dnd_time_before";
+    public static final String  PREFERENCE_QUIET_HOURS_AFTER          = "pref_dnd_time_after";
     //----------------------------------------
 
 

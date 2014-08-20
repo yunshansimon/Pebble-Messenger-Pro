@@ -9,4 +9,6 @@
 
     <string name="notif_started_loading" >Creating Unicode character database&#8230;</string>
     <string name="notif_finished_loading" >Finished loading font database! Tap to dismiss&#8320;</string>
+
+    <string name="error_fontbase_notready">There is a message coming, but the font database is not ready. Please wait a while! If the error take long times, please rebuild the font data base at the setting view in Pebble Messenger.</string>
 </resources>

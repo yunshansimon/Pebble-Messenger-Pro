@@ -8,6 +8,9 @@ import android.os.Message;
 import android.os.Messenger;
 
 public class PebbleCenter extends Service {
+    public final static int PEBBLE_SEND_MESSAGE=1;
+    public final static int PEBBLE_SEND_CALL=2;
+
     public PebbleCenter() {
     }
 

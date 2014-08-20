@@ -1,17 +1,27 @@
 package yangtsao.pebblemessengerpro.services;
 
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
+import android.os.Message;
+import android.os.Messenger;
 import android.os.PowerManager;
+import android.os.RemoteException;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityEvent;
 import yangtsao.pebblemessengerpro.Constants;
+import yangtsao.pebblemessengerpro.db.MessageDbHandler;
+
 import android.app.Notification;
 import android.os.Parcelable;
 import android.content.SharedPreferences;
@@ -34,9 +44,25 @@ public class NotificationService extends AccessibilityService {
     private boolean   notifScreenOn         = true;
     private String[]  packages              = null;
     private File      watchFile;
+    private boolean   callMessengerEnable   = false;
+
+    private Messenger rMessageProcessHandler=null;
+
+    private final ServiceConnection connToMessageProcess =new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            rMessageProcessHandler=new Messenger(iBinder);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            rMessageProcessHandler=null;
+        }
+    };
 
     public NotificationService() {
     }
+
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
@@ -96,12 +122,7 @@ public class NotificationService extends AccessibilityService {
             Constants.log(LOG_TAG, eventPackageName + " was not found in the include list. Returning.");
             return;
         }
-        String title = "";
-        try {
-            title = pm.getApplicationLabel(pm.getApplicationInfo(eventPackageName, 0)).toString();
-        } catch (NameNotFoundException e) {
-            title = eventPackageName;
-        }
+        String title = eventPackageName.substring(eventPackageName.lastIndexOf(".")+1);
         // get the notification text
         String notificationText = event.getText().toString();
         // strip the first and last characters which are [ and ]
@@ -122,6 +143,19 @@ public class NotificationService extends AccessibilityService {
         if (notificationText.length() == 0) {
             return;
         }
+        Message msg=Message.obtain();
+        msg.what=MessageProcessingService.MSG_NEW_MESSAGE;
+        Bundle b=new Bundle();
+        b.putString(MessageDbHandler.COL_MESSAGE_APP,title);
+        b.putString(MessageDbHandler.COL_MESSAGE_CONTENT,notificationText);
+        msg.setData(b);
+        try {
+            rMessageProcessHandler.send(msg);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+            Constants.log(LOG_TAG,"Error when sending message to MessageProcessingService.");
+        }
+
     }
 
     private String getExtraBigData(Notification notification, String existing_text) {
@@ -221,6 +255,7 @@ public class NotificationService extends AccessibilityService {
         notifications_only = sharedPref.getBoolean(Constants.PREFERENCE_NOTIFICATIONS_ONLY, true);
         no_ongoing_notifs = sharedPref.getBoolean(Constants.PREFERENCE_NO_ONGOING_NOTIF, false);
         notifScreenOn = sharedPref.getBoolean(Constants.PREFERENCE_NOTIF_SCREEN_ON, true);
+        callMessengerEnable=sharedPref.getBoolean(Constants.PREFERENCE_CALL_ENABLE,false);
         lastChange = watchFile.lastModified();
     }
     @Override
@@ -248,9 +283,45 @@ public class NotificationService extends AccessibilityService {
             watchFile.setLastModified(System.currentTimeMillis());
         }
         loadPrefs();
+        bindService(new Intent(this, MessageProcessingService.class), connToMessageProcess,
+                Context.BIND_AUTO_CREATE);
     }
     @Override
     public void onDestroy() {
 
+    }
+
+    private class MyPhoneListener extends PhoneStateListener {
+        @Override
+        public void onCallStateChanged(int state, String incomingNumber) {
+            if (!callMessengerEnable) {
+                return;
+            }
+
+            switch (state) {
+
+                case TelephonyManager.CALL_STATE_RINGING:
+                    if (incomingNumber != null) {
+                        smsPhoneNum = incomingNumber;
+                    } else {
+
+                        smsPhoneNum = "";
+                    }
+                    sendCallToPebble(smsPhoneNum, queryNameByNum(smsPhoneNum, getBaseContext()));
+                    Constants.log("phone", "phone is comming:" + smsPhoneNum);
+                    break;
+                case TelephonyManager.CALL_STATE_IDLE:
+                    if (isCallBusy) {
+                        sendStopCallMessengerToPebble();
+                    }
+
+                    break;
+
+                case TelephonyManager.CALL_STATE_OFFHOOK:
+
+                    break;
+            }
+            ;
+        }
     }
 }
