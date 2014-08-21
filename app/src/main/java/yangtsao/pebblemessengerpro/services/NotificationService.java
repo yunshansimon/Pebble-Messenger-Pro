@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.accessibilityservice.AccessibilityService;
@@ -13,6 +14,8 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.PowerManager;
 import android.os.RemoteException;
+import android.provider.ContactsContract;
+import android.telephony.PhoneNumberUtils;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.view.LayoutInflater;
@@ -20,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityEvent;
 import yangtsao.pebblemessengerpro.Constants;
+import yangtsao.pebblemessengerpro.R;
 import yangtsao.pebblemessengerpro.db.MessageDbHandler;
 
 import android.app.Notification;
@@ -47,6 +51,19 @@ public class NotificationService extends AccessibilityService {
     private boolean   callMessengerEnable   = false;
 
     private Messenger rMessageProcessHandler=null;
+    private Messenger rPebbleCenterHandler=null;
+
+    private final ServiceConnection connToPebbleCenter=new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            rPebbleCenterHandler=new Messenger(iBinder);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            rPebbleCenterHandler=null;
+        }
+    };
 
     private final ServiceConnection connToMessageProcess =new ServiceConnection() {
         @Override
@@ -285,9 +302,12 @@ public class NotificationService extends AccessibilityService {
         loadPrefs();
         bindService(new Intent(this, MessageProcessingService.class), connToMessageProcess,
                 Context.BIND_AUTO_CREATE);
+        bindService(new Intent(this,PebbleCenter.class),connToPebbleCenter,Context.BIND_AUTO_CREATE);
     }
     @Override
     public void onDestroy() {
+        unbindService(connToPebbleCenter);
+        unbindService(connToMessageProcess);
 
     }
 
@@ -300,21 +320,36 @@ public class NotificationService extends AccessibilityService {
 
             switch (state) {
 
-                case TelephonyManager.CALL_STATE_RINGING:
-                    if (incomingNumber != null) {
-                        smsPhoneNum = incomingNumber;
+                case TelephonyManager.CALL_STATE_RINGING: {
+                    Message msg = Message.obtain();
+                    msg.what = MessageProcessingService.MSG_NEW_CALL;
+                    Bundle b = new Bundle();
+                    if (incomingNumber != null && incomingNumber != "") {
+                        b.putString(MessageDbHandler.COL_CALL_NUMBER, incomingNumber);
+                        b.putString(MessageDbHandler.COL_CALL_NAME,queryNameByNum(incomingNumber));
                     } else {
-
-                        smsPhoneNum = "";
+                        b.putString(MessageDbHandler.COL_CALL_NUMBER, "0");
+                        b.putString(MessageDbHandler.COL_CALL_NAME,getString(R.string.notificationservice_privateNumber));
                     }
-                    sendCallToPebble(smsPhoneNum, queryNameByNum(smsPhoneNum, getBaseContext()));
-                    Constants.log("phone", "phone is comming:" + smsPhoneNum);
+                    msg.setData(b);
+                    try {
+                        rMessageProcessHandler.send(msg);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }
                     break;
                 case TelephonyManager.CALL_STATE_IDLE:
-                    if (isCallBusy) {
-                        sendStopCallMessengerToPebble();
+                {
+                    Message msg=Message.obtain();
+                    msg.what=PebbleCenter.PEBBLE_CALL_IDLE;
+                    try {
+                        rPebbleCenterHandler.send(msg);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                        Constants.log(LOG_TAG,"Error when sending message to PebbleCenter.");
                     }
-
+                }
                     break;
 
                 case TelephonyManager.CALL_STATE_OFFHOOK:
@@ -322,6 +357,32 @@ public class NotificationService extends AccessibilityService {
                     break;
             }
             ;
+        }
+        public  String queryNameByNum(String num) {
+            String findNum=rawNumber(num);
+            Cursor cursor=getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                    new String[]{
+                            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                            ContactsContract.CommonDataKinds.Phone.NUMBER
+                    },
+                    ContactsContract.CommonDataKinds.Phone.HAS_PHONE_NUMBER, null, null);
+            if (cursor==null){
+                return getString(R.string.notificationservice_unknownperson);
+            }
+            int columnNumberId=cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+            String nameString=getString(R.string.notificationservice_unknownperson);
+            cursor.moveToFirst();
+            do{
+                if(rawNumber(cursor.getString(columnNumberId)).matches(findNum + "$")){
+                    nameString=cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+                    break;
+                }
+            }while (cursor.moveToNext());
+            return nameString;
+            }
+
+        public String rawNumber (String num){
+            return num.replaceAll("\\(*?\\)","").replaceAll("\\D","").replaceFirst("^[0]+","");
         }
     }
 }

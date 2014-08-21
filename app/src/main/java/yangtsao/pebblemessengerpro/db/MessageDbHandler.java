@@ -1,5 +1,6 @@
 package yangtsao.pebblemessengerpro.db;
 
+import android.app.Application;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -7,9 +8,9 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import android.os.Bundle;
 import android.text.format.Time;
-import java.util.ArrayList;
-import java.util.List;
+import yangtsao.pebblemessengerpro.R;
 
 import yangtsao.pebblemessengerpro.Constants;
 
@@ -160,56 +161,55 @@ public class MessageDbHandler extends SQLiteOpenHelper {
                 }else if (counter>toPos){
                    break;
                 }
-                cursor.moveToNext();
                 counter++;
-            } while (!cursor.isAfterLast());
+            } while (cursor.moveToNext());
 
         }
         cursor.close();
         return messageTable.toString();
     }
 
-    public String getColMessageContent(int ID){
-        String selectQuery="SELECT * FROM " + TABLE_MESSAGE_NAME + " WHERE ID=" + String.valueOf(ID);
+    public Bundle getColMessageContent(String ID){
+        String selectQuery="SELECT * FROM " + TABLE_MESSAGE_NAME + " WHERE ID=" + ID;
         Cursor cursor=_db.rawQuery(selectQuery,null);
-        String content;
+        Bundle content=new Bundle();
         if (cursor==null){
-            return "";
+
+            return null;
         }
         if (cursor.getCount()>0){
             cursor.moveToFirst();
-            content=cursor.getString(3);
+            content.putString(MessageDbHandler.COL_MESSAGE_CONTENT,cursor.getString(3));
             if (cursor.getString(4).equalsIgnoreCase(NEW_ICON)) {
                 ContentValues values = new ContentValues();
                 values.put(COL_MESSAGE_NEW, OLD_ICON);
                 _db.update(TABLE_MESSAGE_NAME, values, "ID =" + String.valueOf(ID), null);
             }
         }else{
-            content="";
+            content=null;
         }
         cursor.close();
         return content;
     }
 
-    public String[] getCall(int ID){
-        String selectQuery="SELECT * FROM " + TABLE_CALL_NAME + " WHERE ID=" + String.valueOf(ID);
+    public Bundle getCall(String ID){
+        String selectQuery="SELECT * FROM " + TABLE_CALL_NAME + " WHERE ID=" + ID;
         Cursor cursor=_db.rawQuery(selectQuery,null);
-        String content[]=new String[2];
+        Bundle content=new Bundle();
         if (cursor==null){
-            return content;
+            return null;
         }
         if (cursor.getCount()>0){
             cursor.moveToFirst();
-            content[0]=cursor.getString(2);
-            content[1]=cursor.getString(3);
+            content.putString(MessageDbHandler.COL_CALL_NUMBER,cursor.getString(2));
+            content.putString(MessageDbHandler.COL_CALL_NAME,cursor.getString(3));
             if (cursor.getString(4).equalsIgnoreCase(NEW_ICON)) {
                 ContentValues values = new ContentValues();
                 values.put(COL_CALL_NEW, OLD_ICON);
                 _db.update(TABLE_CALL_NAME, values, "ID =" + String.valueOf(ID), null);
             }
         }else{
-            content[0]="";
-            content[1]="";
+            content=null;
         }
         cursor.close();
         return content;

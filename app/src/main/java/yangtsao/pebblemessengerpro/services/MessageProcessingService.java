@@ -69,16 +69,16 @@ public class MessageProcessingService extends Service {
     private Calendar      quiet_hours_after     = null;
     private boolean   callQuietEnable       = false;
 
-    private Messenger mPebbleCenter =null;
+    private Messenger rPebbleCenter =null;
     private final ServiceConnection connToPebbleCenter =new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            mPebbleCenter=new Messenger(iBinder);
+            rPebbleCenter=new Messenger(iBinder);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
-            mPebbleCenter=null;
+            rPebbleCenter=null;
         }
     };
 
@@ -176,7 +176,7 @@ public class MessageProcessingService extends Service {
                     msgToPebble.what = PebbleCenter.PEBBLE_SEND_MESSAGE;
                     msgToPebble.setData(msg.getData());
                     try {
-                        mPebbleCenter.send(msgToPebble);
+                        rPebbleCenter.send(msgToPebble);
                     } catch (RemoteException e) {
                         e.printStackTrace();
                         Constants.log(TAG_NAME, "Error with sending message to PebbleCenter.");
@@ -188,7 +188,7 @@ public class MessageProcessingService extends Service {
                     msgToPebble.what=PebbleCenter.PEBBLE_SEND_CALL;
                     msgToPebble.setData(msg.getData());
                     try {
-                        mPebbleCenter.send(msgToPebble);
+                        rPebbleCenter.send(msgToPebble);
                     } catch (RemoteException e) {
                         e.printStackTrace();
                         Constants.log(TAG_NAME,"Error with sending message to PebbleCenter.");
@@ -196,14 +196,58 @@ public class MessageProcessingService extends Service {
                     }
                     break;
                 case MSG_GET_MESSAGE_TABLE:
+                {
+                    Message msgToPebble=Message.obtain();
+                    msgToPebble.what=PebbleCenter.PEBBLE_SEND_MESSAGE_TABLE;
+                    Bundle b=new Bundle();
+                    b.putString(MessageDbHandler.TABLE_MESSAGE_NAME, mdb.getTable(MessageDbHandler.TABLE_MESSAGE_NAME,1,10));
+                    msgToPebble.setData(b);
+                    try {
+                        rPebbleCenter.send(msgToPebble);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }
                     break;
                 case MSG_GET_CALL_TABLE:
+                {
+                    Message msgToPebble=Message.obtain();
+                    msgToPebble.what=PebbleCenter.PEBBLE_SEND_CALL_TABLE;
+                    Bundle b=new Bundle();
+                    b.putString(MessageDbHandler.TABLE_CALL_NAME, mdb.getTable(MessageDbHandler.TABLE_CALL_NAME,1,10));
+                    msgToPebble.setData(b);
+                    try {
+                        rPebbleCenter.send(msgToPebble);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }
                     break;
                 case MSG_GET_MESSAGE:
+                {
+                    Message innerMsg=processHandler.obtainMessage(INNER_MESSAGE_PROCEED);
+                    Bundle b=mdb.getColMessageContent(msg.getData().getString(MessageDbHandler.COL_MESSAGE_ID));
+                    if (b==null){
+                        b=new Bundle();
+                        b.putString(MessageDbHandler.COL_MESSAGE_CONTENT,getString(R.string.messagedbhandler_message_no_more_keep));
+                    }
+                    innerMsg.setData(b);
+                    processHandler.sendMessage(innerMsg);
+                }
                     break;
                 case MSG_GET_CALL:
+                    Message innerMsg=processHandler.obtainMessage(INNER_CALL_PROCEED);
+                    Bundle b=mdb.getCall(msg.getData().getString(MessageDbHandler.COL_CALL_ID));
+                    if (b==null){
+                        b=new Bundle();
+                        b.putString(MessageDbHandler.COL_MESSAGE_CONTENT,getString(R.string.messagedbhandler_message_no_more_keep));
+                        innerMsg.what=INNER_MESSAGE_PROCEED;
+                    }
+                    innerMsg.setData(b);
+                    processHandler.sendMessage(innerMsg);
                     break;
                 case MSG_CLEAN:
+                    mdb.cleanAll();
                     break;
                 default:
                     super.handleMessage(msg);
