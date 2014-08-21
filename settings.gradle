@@ -1,2 +1,3 @@
 include ':app'
 include ':pEBBLE_KIT'
+include ':pEBBLE_KIT'
