@@ -6,6 +6,8 @@ package yangtsao.pebblemessengerpro;
 
 import android.util.Log;
 
+import java.util.UUID;
+
 public class Constants {
     private Constants() {
         throw new UnsupportedOperationException("This class is non-instantiable, so stop trying!");
@@ -30,9 +32,13 @@ public class Constants {
     public static final String  PREFERENCE_QUIET_HOURS                = "pref_dnd_time_enabled";
     public static final String  PREFERENCE_QUIET_HOURS_BEFORE         = "pref_dnd_time_before";
     public static final String  PREFERENCE_QUIET_HOURS_AFTER          = "pref_dnd_time_after";
+    public static final String  PREFERENCE_MIN_NOTIFICATION_WAIT      = "minNotificationWait";
     //----------------------------------------
 
     //two sets parameters of message characters
+    public static final int MESSAGE_SCALE_SMALL=0;
+    public static final int MESSAGE_SCALE_MID=1;
+    public static final int MESSAGE_SCALE_LARGE=2;
     public static final int MAX_PACKAGE_LENGTH=120;
     public static final int SMALL_LINE_CONTAIN_CHARS=16;
     public static final int SMALL_PAGE_CONTAIN_LINES=9;
@@ -40,7 +46,10 @@ public class Constants {
     public static final int MID_PAGE_CONTAIN_LINES=8;
     public static final int LARGE_LINE_CONTAIN_CHARS=12;
     public static final int LARGE_PAGE_CONTAIN_LINES=6;
+    //-----------------------------------------
 
+    //Pebble app communication
+    public static final UUID PEBBLE_UUID= UUID.fromString("2d0b18b1-0ee6-41ca-9579-a0c4c6568d93");
     //Shared function
     public static void log(String tag, String message) {
         if (Constants.IS_LOGGABLE) {
