@@ -14,4 +14,6 @@
     <string name="notificationservice_unknownperson">Unknown Person</string>
     <string name="notificationservice_privateNumber">Private Number</string>
     <string name="messagedbhandler_message_no_more_keep">The Message is no more kept in Pebble Messenger. Please check it by phone.</string>
+    <string name="pref_call_sms_short_default">Sorry! I am busy and call you later.</string>
+    <string name="pref_call_sms_long_default">Sorry! I am in a meeting, Send me message or waiting for my call back later.</string>
 </resources>

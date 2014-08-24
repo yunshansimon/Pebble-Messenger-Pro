@@ -29,6 +29,8 @@ public class Constants {
     public static final String  PREFERENCE_MESSAGE_SCALE              = "pref_message_scale";
     public static final String  PREFERENCE_CALL_ENABLE                = "pref_call_enable";
     public static final String  PREFERENCE_CALL_QUIET                 = "pref_call_quiet";
+    public static final String  PREFERENCE_CALL_SMS_SHORT             = "pref_call_sms_short";
+    public static final String  PREFERENCE_CALL_SMS_LONG              = "pref_call_sms_long";
     public static final String  PREFERENCE_QUIET_HOURS                = "pref_dnd_time_enabled";
     public static final String  PREFERENCE_QUIET_HOURS_BEFORE         = "pref_dnd_time_before";
     public static final String  PREFERENCE_QUIET_HOURS_AFTER          = "pref_dnd_time_after";
@@ -50,6 +52,7 @@ public class Constants {
 
     //Pebble app communication
     public static final UUID PEBBLE_UUID= UUID.fromString("2d0b18b1-0ee6-41ca-9579-a0c4c6568d93");
+    public static final String  INTENT_SEND_PEBBLE_NOTIFICATION       = "com.getpebble.action.SEND_NOTIFICATION";
     //Shared function
     public static void log(String tag, String message) {
         if (Constants.IS_LOGGABLE) {

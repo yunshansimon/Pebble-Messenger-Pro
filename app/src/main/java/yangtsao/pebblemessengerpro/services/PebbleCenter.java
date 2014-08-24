@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -15,9 +16,13 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
+import android.telephony.PhoneNumberUtils;
+import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
 import android.text.format.Time;
+import android.view.KeyEvent;
 
+import com.android.internal.telephony.ITelephony;
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.util.PebbleDictionary;
 
@@ -31,6 +36,7 @@ import java.util.List;
 import java.util.Queue;
 
 import yangtsao.pebblemessengerpro.Constants;
+import yangtsao.pebblemessengerpro.R;
 import yangtsao.pebblemessengerpro.db.MessageDbHandler;
 import yangtsao.pebblemessengerpro.models.CharacterMatrix;
 import yangtsao.pebblemessengerpro.models.PebbleCall;
@@ -65,9 +71,13 @@ public class PebbleCenter extends Service {
     private File watchFile;
     private Long lastChange;
     private Long timeOut;
+    private boolean callMessengerEnable;
+    private String sms1;
+    private String sms2;
+
 
     private Deque<PebbleDictionary> sendQueue;
-    private Queue<PebbleMessage> waitQueue;
+    private Deque<PebbleMessage> waitQueue;
     private boolean pebbleBusy=false;
     private Time busyBegin;
     private final static long MAX_WAITING_MILLIS=30000;
@@ -81,8 +91,13 @@ public class PebbleCenter extends Service {
     private static final int REQUEST_TRANSID_CLOSE_APP=5;
     private static final int REQUEST_TRANSID_PICKUP_PHONE=6;
     private static final int REQUEST_TRANSID_HANGOFF_PHONE=7;
-    private static final int REQUEST_TRANSID_NEXTPAGE=8;
+    private static final int REQUEST_TRANSID_HANGOFF_SMS1=8;
+    private static final int REQUEST_TRANSID_HANGOFF_SMS2=9;
+    private static final int REQUEST_TRANSID_NEXTPAGE=10;
     private static final int ID_EXTRA_DATA=2;
+    private static final int REQUEST_EXTRA_SPEAKER_ON=1;
+    private static final int REQUEST_EXTRA_SPEAKER_OFF=2;
+
 
     //pebble command
     private static final int ID_COMMAND=0;
@@ -144,14 +159,16 @@ public class PebbleCenter extends Service {
             watchFile.setLastModified(System.currentTimeMillis());
         }
         loadPref();
+        _contex=this;
+        busyBegin=new Time();
+        waitQueue=new ArrayDeque<PebbleMessage>();
+        sendQueue=new ArrayDeque<PebbleDictionary>();
+        bindService(new Intent(this, MessageProcessingService.class), connToMessageProcessing,
+                Context.BIND_AUTO_CREATE);
         prepareThread=new PrepareThread();
         prepareThread.start();
         sendMsgThread=new SendMsgThread();
         sendMsgThread.start();
-        bindService(new Intent(this, MessageProcessingService.class), connToMessageProcessing,
-                Context.BIND_AUTO_CREATE);
-        _contex=this;
-        busyBegin=new Time();
         isPebbleEnable=PebbleKit.isWatchConnected(_contex);
         PebbleKit.registerReceivedDataHandler(_contex,new PebbleKit.PebbleDataReceiver(Constants.PEBBLE_UUID) {
             @Override
@@ -206,8 +223,25 @@ public class PebbleCenter extends Service {
                         }
                         break;
                     case REQUEST_TRANSID_PICKUP_PHONE:
+                        switch (data.getInteger(ID_EXTRA_DATA).intValue()){
+                            case REQUEST_EXTRA_SPEAKER_ON:
+                                answerCall(true);
+                                break;
+                            case REQUEST_EXTRA_SPEAKER_OFF:
+                                answerCall(false);
+                                break;
+                        }
                         break;
                     case REQUEST_TRANSID_HANGOFF_PHONE:
+                        endCall();
+                        break;
+                    case REQUEST_TRANSID_HANGOFF_SMS1:
+                        endCall();
+                        doSendSMSTo(data.getString(ID_EXTRA_DATA),sms1);
+                        break;
+                    case REQUEST_TRANSID_HANGOFF_SMS2:
+                        endCall();
+                        doSendSMSTo(data.getString(ID_EXTRA_DATA),sms2);
                         break;
                     case REQUEST_TRANSID_CLOSE_APP:
                         sendMsgThreadHandler.sendEmptyMessage(SEND_CLOSE_APP);
@@ -604,6 +638,7 @@ public class PebbleCenter extends Service {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         fLength=Constants.MAX_PACKAGE_LENGTH;
         timeOut=sharedPref.getLong(Constants.PREFERENCE_MIN_NOTIFICATION_WAIT, 5000);
+        callMessengerEnable = sharedPref.getBoolean(Constants.PREFERENCE_CALL_ENABLE, true);
         switch (sharedPref.getInt(Constants.PREFERENCE_MESSAGE_SCALE,Constants.MESSAGE_SCALE_SMALL)){
             case Constants.MESSAGE_SCALE_SMALL:
                 fChars=Constants.SMALL_LINE_CONTAIN_CHARS;
@@ -617,6 +652,12 @@ public class PebbleCenter extends Service {
                 fChars=Constants.LARGE_LINE_CONTAIN_CHARS;
                 fLines=Constants.LARGE_PAGE_CONTAIN_LINES;
                 break;
+        }
+        if (callMessengerEnable) {
+            sms1 = sharedPref.getString(Constants.PREFERENCE_CALL_SMS_SHORT,
+                    getString(R.string.pref_call_sms_short_default));
+            sms2 = sharedPref.getString(Constants.PREFERENCE_CALL_SMS_LONG,
+                    getString(R.string.pref_call_sms_long_default));
         }
         lastChange = watchFile.lastModified();
     }
@@ -637,4 +678,72 @@ public class PebbleCenter extends Service {
 
     }
 
+    private void answerCall(boolean isSpeakon) {
+
+        Context context = getApplicationContext();
+        AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        // 判断是否插上了耳机
+        if (!audioManager.isWiredHeadsetOn()) {
+            // 4.1以上系统限制了部分权限， 使用三星4.1版本测试提示警告：Permission Denial: not allowed to
+            // send broadcast android.intent.action.HEADSET_PLUG from pid=1324,
+            // uid=10017
+            // 这里需要注意一点，发送广播时加了权限“android.permission.CALL_PRIVLEGED”，则接受该广播时也需要增加该权限。但是4.1以上版本貌似这个权限只能系统应用才可以得到。测试的时候，自定义的接收器无法接受到此广播，后来去掉了这个权限，设为NULL便可以监听到了。
+
+            if (android.os.Build.VERSION.SDK_INT >= 15) {
+                Constants.log("speakerset", "AudioManager before mode:" + audioManager.getMode() + " speaker mod:"
+                        + String.valueOf(audioManager.isSpeakerphoneOn()));
+                Intent meidaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+                KeyEvent keyEvent = new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_HEADSETHOOK);
+                meidaButtonIntent.putExtra(Intent.EXTRA_KEY_EVENT, keyEvent);
+                context.sendOrderedBroadcast(meidaButtonIntent, null);
+                if (isSpeakon) {
+                    try {
+                        Thread.sleep(500);
+
+                    } catch (InterruptedException e) {
+                        Constants.log("speakerset", "Problem while sleeping");
+                    }
+                    Constants.log("speakerset", "AudioManager answer mode:" + audioManager.getMode() + " speaker mod:"
+                            + String.valueOf(audioManager.isSpeakerphoneOn()));
+                    while (audioManager.getMode() != AudioManager.MODE_IN_CALL) {
+                        try {
+                            Thread.sleep(300);
+
+                        } catch (InterruptedException e) {
+                            Constants.log("speakerset", "Problem while sleeping");
+                        }
+                    }
+                    // audioManager.setMicrophoneMute(true);
+                    audioManager.setSpeakerphoneOn(true);
+                    // audioManager.setMode(AudioManager.MODE_IN_CALL);
+                    Constants.log("speakerset", "AudioManager set mode:" + audioManager.getMode() + " speaker mod:"
+                            + String.valueOf(audioManager.isSpeakerphoneOn()));
+
+                }
+
+            }
+        } else {
+            Constants.log(
+                    "speakerset",
+                    "AudioManager before mode:" + audioManager.getMode() + " speaker mod:"
+                            + String.valueOf(audioManager.isSpeakerphoneOn()));
+
+            Intent meidaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+            KeyEvent keyEvent = new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_HEADSETHOOK);
+            meidaButtonIntent.putExtra(Intent.EXTRA_KEY_EVENT, keyEvent);
+            context.sendOrderedBroadcast(meidaButtonIntent, null);
+
+        }
+    }
+
+    public void doSendSMSTo(String phoneNumber, String message) {
+        if (PhoneNumberUtils.isGlobalPhoneNumber(phoneNumber)) {
+            SmsManager smsmanager = SmsManager.getDefault();
+            ArrayList<String> smsList = smsmanager.divideMessage(message);
+            for (String sms : smsList) {
+                smsmanager.sendTextMessage(phoneNumber, null, sms, null, null);
+            }
+            Constants.log("sendsms", "send:[" + message + "] to number:" + phoneNumber);
+        }
+    }
 }
