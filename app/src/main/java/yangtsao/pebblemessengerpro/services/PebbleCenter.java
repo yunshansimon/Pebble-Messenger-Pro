@@ -33,7 +33,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import java.util.Queue;
 
 import yangtsao.pebblemessengerpro.Constants;
 import yangtsao.pebblemessengerpro.R;
@@ -581,10 +580,24 @@ public class PebbleCenter extends Service {
                     this.post(sendToPebble);
                     break;
                 case SEND_CONTINUE:
+                {
+                    if (sendQueue.isEmpty()) return;
+                    if (sendQueue.peekFirst().getInteger(ID_PACKAGE_NUM).intValue()==1){
+                    return;
+                 }
+                }
                     this.post(sendToPebble);
                     break;
-                case SEND_NEXT_PAGE:
-                    this.post(sendToPebble);
+                case SEND_NEXT_PAGE: {
+                    PebbleDictionary data=sendQueue.peekFirst();
+                    if(sendQueue.isEmpty()) return;
+                    if (data.getInteger(ID_COMMAND).byteValue() == REMOTE_EXCUTE_CONTINUE_MESSAGE){
+                        if (data.getInteger(ID_PAGE_NUM).intValue()>1 &&
+                            data.getInteger(ID_PACKAGE_NUM).intValue()==1){
+                            this.post(sendToPebble);
+                        }
+                    }
+                }
                     break;
                 case SEND_CALL:
                     this.post(sendToPebble);
@@ -611,7 +624,7 @@ public class PebbleCenter extends Service {
         @Override
         public void run() {
             PebbleDictionary tmpPD=sendQueue.poll();
-            if (tmpPD.getInteger(ID_PACKAGE_NUM) == tmpPD.getInteger(ID_TOTAL_PACKAGES)) {
+            if (tmpPD.getInteger(ID_PACKAGE_NUM).intValue() == tmpPD.getInteger(ID_TOTAL_PACKAGES).intValue()) {
                 PebbleKit.sendDataToPebbleWithTransactionId(_contex, Constants.PEBBLE_UUID, tmpPD, TRANS_ID_END);
             } else {
                 PebbleKit.sendDataToPebbleWithTransactionId(_contex, Constants.PEBBLE_UUID, tmpPD, TRANS_ID_COMMON);

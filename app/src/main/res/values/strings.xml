@@ -4,16 +4,21 @@
     <string name="app_name">Pebble Messenger Pro</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-
-    <string name="accessibility_description" >This allows Pebble Messenger to forward notifications to your pebble!</string>
-
-    <string name="notif_started_loading" >Creating Unicode character database&#8230;</string>
-    <string name="notif_finished_loading" >Finished loading font database! Tap to dismiss&#8320;</string>
-
+    <string name="accessibility_description">This allows Pebble Messenger to forward notifications to your pebble!</string>
+    <string name="notif_started_loading">Creating Unicode character database…</string>
+    <string name="notif_finished_loading">Finished loading font database! Tap to dismiss₀</string>
     <string name="error_fontbase_notready">There is a message coming, but the font database is not ready. Please wait a while! If the error take long times, please rebuild the font data base at the setting view in Pebble Messenger.</string>
     <string name="notificationservice_unknownperson">Unknown Person</string>
     <string name="notificationservice_privateNumber">Private Number</string>
     <string name="messagedbhandler_message_no_more_keep">The Message is no more kept in Pebble Messenger. Please check it by phone.</string>
     <string name="pref_call_sms_short_default">Sorry! I am busy and call you later.</string>
     <string name="pref_call_sms_long_default">Sorry! I am in a meeting, Send me message or waiting for my call back later.</string>
+    <string name="title_activity_navigation">NavigationActivity</string>
+    <string name="title_section1">Section 1</string>
+    <string name="title_section2">Section 2</string>
+    <string name="title_section3">Section 3</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="action_example">Example action</string>
+
 </resources>
