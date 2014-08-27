@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:key="pref_cat_gen"
+        android:title="@string/pref_cat_notif" >
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="pref_notif_only"
+            android:summary="@string/pref_notif_only_summ"
+            android:title="@string/pref_notif_only" />
+        <ListPreference
+            android:key="pref_notif_timeout"
+            android:title="@string/pref_notif_timeout"
+            android:defaultValue="10000"
+            android:entries="@array/pref_notif_timeout"
+            android:entryValues="@array/pref_notif_timeout_values"/>
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="pref_no_ongoing_notif"
+            android:summary="@string/pref_no_ongoing_notif_summ"
+            android:title="@string/pref_no_ongoing_notif" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="pref_notif_screen_on"
+            android:summary="@string/pref_notif_screen_on_summ"
+            android:title="@string/pref_notif_screen_on" />
+        <ListPreference
+            android:key="pref_message_scale"
+            android:title="@string/pref_notif_message_scale"
+            android:defaultValue="0"
+            android:entries="@array/pref_notif_font_size"
+            android:entryValues="@array/pref_notif_font_size_value"/>
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="pref_dnd_time_enabled"
+            android:summary="@string/pref_dnd_time_enabled_summ"
+            android:title="@string/pref_dnd_time_enabled" />
+        <yangtsao.pebblemessengerpro.activities.TimePreference.TimePreference
+            android:key="pref_dnd_time_before"
+            android:dependency="pref_dnd_time_enabled"
+            android:summary="@string/pref_dnd_time_before_summ"
+            android:title="@string/pref_dnd_time_before"
+            android:defaultValue="06:00" />
+        <yangtsao.pebblemessengerpro.activities.TimePreference.TimePreference
+            android:key="pref_dnd_time_after"
+            android:dependency="pref_dnd_time_enabled"
+            android:summary="@string/pref_dnd_time_after_summ"
+            android:title="@string/pref_dnd_time_after"
+            android:defaultValue="21:00" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/pref_cat_call" android:key="pref_call_opt" android:summary="@string/pref_cat_call_summ">
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="pref_call_enable"
+            android:title="@string/pref_call_enable"/>
+        <CheckBoxPreference
+            android:dependency="pref_dnd_time_enabled"
+            android:summary="@string/pref_call_quiet_summ"
+            android:key="pref_call_quiet"
+            android:title="@string/pref_call_quiet"/>
+        <EditTextPreference android:title="@string/pref_call_sms_short" android:summary="@string/pref_call_sms_short_summ" android:key="pref_call_sms_short" android:defaultValue="@string/pref_call_sms_short_default"/>
+        <EditTextPreference android:title="@string/pref_call_sms_long" android:summary="@string/pref_call_sms_long_summ" android:key="pref_call_sms_long" android:defaultValue="@string/pref_call_sms_long_default"/>
+
+    </PreferenceCategory>
+</PreferenceScreen>

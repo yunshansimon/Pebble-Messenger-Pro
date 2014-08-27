@@ -2,7 +2,6 @@
 <resources>
 
     <string name="app_name">Pebble Messenger Pro</string>
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="accessibility_description">This allows Pebble Messenger to forward notifications to your pebble!</string>
     <string name="notif_started_loading">Creating Unicode character database…</string>
@@ -11,8 +10,61 @@
     <string name="notificationservice_unknownperson">Unknown Person</string>
     <string name="notificationservice_privateNumber">Private Number</string>
     <string name="messagedbhandler_message_no_more_keep">The Message is no more kept in Pebble Messenger. Please check it by phone.</string>
+
+    <string name="pref_cat_notif">Notification Options</string>
+    <string name="pref_cat_notif_summ">the function of displaying the notifications on your Pebble.</string>
+    <string name="pref_notif_only">Notifications only</string>
+    <string name="pref_notif_only_summ">If disabled Android Toasts will also be sent to your Pebble</string>
+    <string name="pref_no_ongoing_notif">Don\'t send ongoing notifications</string>
+    <string name="pref_no_ongoing_notif_summ">Android notifications that have the ongoing flag set are not sent to your Pebble. You will receive many messages by one ongoing notifications if this unchecked.</string>
+    <string name="pref_notif_screen_on">Notify when screen is on</string>
+    <string name="pref_notif_screen_on_summ">If this is set, then notifications will be sent to the Pebble when the phone\'s screen is on.</string>
+    <string name="pref_notif_message_scale">Font size on Pebble</string>
+    <string name="pref_notif_message_scale_summ">The font is more large, the chars which were displayed on the Pebble screen is more few.</string>
+    <string name="pref_dnd_time_enabled">Quiet time</string>
+    <string name="pref_dnd_time_enabled_summ">Allows you to prevent any notifications from being sent from Pebble messenger to your Pebble</string>
+    <string name="pref_dnd_time_before_summ">No notifications before this time</string>
+    <string name="pref_dnd_time_before">Quiet time - Not before</string>
+    <string name="pref_dnd_time_after_summ">No notifications after this time</string>
+    <string name="pref_dnd_time_after">Quiet time - Not after</string>
+    <string name="pref_notif_timeout">Notification Timeout</string>
+    <string-array name="pref_notif_timeout">
+        <item>5 seconds</item>
+        <item>10 seconds</item>
+        <item>20 seconds</item>
+    </string-array>
+    <string-array name="pref_notif_timeout_values">
+        <item>5000</item>
+        <item>10000</item>
+        <item>20000</item>
+    </string-array>
+
+   <string-array name="pref_notif_font_size">
+       <item>Normal (16 chars* 9 lines)</item>
+       <item>Middle (14 chars* 8 lines)</item>
+       <item>Large  (12 chars* 6 lines)</item>
+   </string-array>
+
+   <string-array name="pref_notif_font_size_value">
+       <item>0</item>
+       <item>1</item>
+       <item>2</item>
+   </string-array>
+
+    <string name="pref_cat_call">Call Options</string>
+    <string name="pref_cat_call_summ">Display the incoming calls information on Pebble, and remote control your phone to answer or hang off.</string>
+    <string name="pref_call_enable">Enable incoming calls transmitting</string>"
+    <string name="pref_call_quiet">Use the same Quiet Setting as Pebble-Messenger</string>
+    <string name="pref_call_quiet_summ">If you have set the quiet options above, and want the call messenger keep quiet in same time, check it.</string>
+    <string name="pref_call_sms_short">SMS text content for short press</string>
+    <string name="pref_call_sms_short_summ">When the phone call is coming, press middle button of pebble to hang off the call and send a short message to explain you are busy.</string>
+    <string name="pref_call_sms_long">SMS text content for long press</string>
+    <string name="pref_call_sms_long_summ">You can setting another short message, and send it just press middle button of pebble for 0.5 sec</string>
     <string name="pref_call_sms_short_default">Sorry! I am busy and call you later.</string>
-    <string name="pref_call_sms_long_default">Sorry! I am in a meeting, Send me message or waiting for my call back later.</string>
+    <string name="pref_call_sms_long_default">Sorry! I am in a meeting, Send me message or waiting for my call back.</string>
+
+
+
     <string name="title_activity_navigation">NavigationActivity</string>
     <string name="title_section1">Section 1</string>
     <string name="title_section2">Section 2</string>
