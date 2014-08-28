@@ -59,8 +59,15 @@
             android:summary="@string/pref_call_quiet_summ"
             android:key="pref_call_quiet"
             android:title="@string/pref_call_quiet"/>
-        <EditTextPreference android:title="@string/pref_call_sms_short" android:summary="@string/pref_call_sms_short_summ" android:key="pref_call_sms_short" android:defaultValue="@string/pref_call_sms_short_default"/>
-        <EditTextPreference android:title="@string/pref_call_sms_long" android:summary="@string/pref_call_sms_long_summ" android:key="pref_call_sms_long" android:defaultValue="@string/pref_call_sms_long_default"/>
-
+        <EditTextPreference
+            android:title="@string/pref_call_sms_short"
+            android:summary="@string/pref_call_sms_short_summ"
+            android:key="pref_call_sms_short"
+            android:defaultValue="@string/pref_call_sms_short_default"/>
+        <EditTextPreference
+            android:title="@string/pref_call_sms_long"
+            android:summary="@string/pref_call_sms_long_summ"
+            android:key="pref_call_sms_long"
+            android:defaultValue="@string/pref_call_sms_long_default"/>
     </PreferenceCategory>
 </PreferenceScreen>

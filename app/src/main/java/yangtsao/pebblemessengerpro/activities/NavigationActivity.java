@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.widget.DrawerLayout;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -46,6 +47,19 @@ public class NavigationActivity extends Activity
     public void onNavigationDrawerItemSelected(int position) {
         // update the main content by replacing fragments
         FragmentManager fragmentManager = getFragmentManager();
+        switch (position){
+            case 1:
+                break;
+            case 2:
+                fragmentManager.beginTransaction()
+                        .replace(R.id.container,new SettingFragment())
+                        .commit();
+                break;
+            case 3:
+                break;
+            case 4:
+                break;
+        }
         fragmentManager.beginTransaction()
                 .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
                 .commit();
@@ -54,14 +68,16 @@ public class NavigationActivity extends Activity
     public void onSectionAttached(int number) {
         switch (number) {
             case 1:
-                mTitle = getString(R.string.title_section1);
+                mTitle = getString(R.string.title_intro_setup_activity);
                 break;
             case 2:
-                mTitle = getString(R.string.title_section2);
+                mTitle = getString(R.string.title_setting_activity);
                 break;
             case 3:
-                mTitle = getString(R.string.title_section3);
+                mTitle = getString(R.string.title_tools_activity);
                 break;
+            case 4:
+                mTitle=getString(R.string.title_about_activity);
         }
     }
 
@@ -93,10 +109,12 @@ public class NavigationActivity extends Activity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+            PreferenceManager.setDefaultValues(this,R.xml.preference,true);
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
+
 
     /**
      * A placeholder fragment containing a simple view.
