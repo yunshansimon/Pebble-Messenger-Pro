@@ -64,7 +64,9 @@ public class NavigationActivity extends Activity
                         .commit();
                 break;
             case 2:
-
+                fragmentManager.beginTransaction()
+                        .replace(R.id.container,new ToolsFragment())
+                        .commit();
                 break;
             case 3:
                 break;

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="1">
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textMultiLine"
+        android:ems="10"
+        android:id="@+id/TextMessage"
+        android:layout_weight="0.56"
+        android:text="@string/test_message_content"
+        android:hint="@string/dialog_send_message_hint"
+        android:editable="true"
+        android:gravity="top" />
+</LinearLayout>
