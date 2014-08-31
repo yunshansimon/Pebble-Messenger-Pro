@@ -41,12 +41,12 @@ public class FontDbHandler extends SQLiteOpenHelper {
 
     public static final int            FILE_LINECOUNT   = 64061;
 
-    private final Context _context;
+    private Context _context;
 
     private SQLiteDatabase _db;
 
 
-    private final FontDbLoadNotifier _notifier;
+    private FontDbLoadNotifier _notifier;
 
     // private MainActivity _causingActivity;
 
@@ -61,6 +61,7 @@ public class FontDbHandler extends SQLiteOpenHelper {
         this._notifier = new FontDbLoadNotifier(context);
         // this._causingActivity = causingActivity;
     }
+
 
     // Creating Tables
     @Override
@@ -158,6 +159,10 @@ public class FontDbHandler extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    public void rebuild(){
+        _db.execSQL("DROP TABLE IF EXISTS " + TABLE_HEX);
+        onCreate(_db);
+    }
     /**
      * All CRUD(Create, Read, Update, Delete) Operations
      */

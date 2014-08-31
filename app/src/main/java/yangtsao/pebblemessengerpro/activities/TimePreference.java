@@ -1,4 +1,4 @@
-package yangtsao.pebblemessengerpro.activities.TimePreference;
+package yangtsao.pebblemessengerpro.activities;
 
 /**
  * Created by yunshansimon on 14-8-27.

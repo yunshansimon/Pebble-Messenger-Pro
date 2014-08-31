@@ -652,7 +652,8 @@ public class PebbleCenter extends Service {
         fLength=Constants.MAX_PACKAGE_LENGTH;
         timeOut=sharedPref.getLong(Constants.PREFERENCE_MIN_NOTIFICATION_WAIT, 5000);
         callMessengerEnable = sharedPref.getBoolean(Constants.PREFERENCE_CALL_ENABLE, true);
-        switch (sharedPref.getInt(Constants.PREFERENCE_MESSAGE_SCALE,Constants.MESSAGE_SCALE_SMALL)){
+
+        switch (Integer.parseInt(sharedPref.getString(Constants.PREFERENCE_MESSAGE_SCALE,String.valueOf(Constants.MESSAGE_SCALE_SMALL)))){
             case Constants.MESSAGE_SCALE_SMALL:
                 fChars=Constants.SMALL_LINE_CONTAIN_CHARS;
                 fLines=Constants.SMALL_PAGE_CONTAIN_LINES;
@@ -758,5 +759,9 @@ public class PebbleCenter extends Service {
             }
             Constants.log("sendsms", "send:[" + message + "] to number:" + phoneNumber);
         }
+    }
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return START_STICKY;
     }
 }

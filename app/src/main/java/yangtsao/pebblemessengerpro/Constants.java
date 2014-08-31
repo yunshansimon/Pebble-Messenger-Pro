@@ -53,6 +53,7 @@ public class Constants {
     //Pebble app communication
     public static final UUID PEBBLE_UUID= UUID.fromString("2d0b18b1-0ee6-41ca-9579-a0c4c6568d93");
     public static final String  INTENT_SEND_PEBBLE_NOTIFICATION       = "com.getpebble.action.SEND_NOTIFICATION";
+    public static final String  PEBBLE_APP_URL="";
     //Shared function
     public static void log(String tag, String message) {
         if (Constants.IS_LOGGABLE) {

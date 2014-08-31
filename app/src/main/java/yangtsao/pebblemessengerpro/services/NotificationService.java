@@ -385,4 +385,8 @@ public class NotificationService extends AccessibilityService {
             return num.replaceAll("\\(*?\\)","").replaceAll("\\D","").replaceFirst("^[0]+","");
         }
     }
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return START_STICKY;
+    }
 }

@@ -20,6 +20,8 @@
     <string name="pref_notif_screen_on_summ">If this is set, then notifications will be sent to the Pebble when the phone\'s screen is on.</string>
     <string name="pref_notif_message_scale">Font size on Pebble</string>
     <string name="pref_notif_message_scale_summ">The font is more large, the chars which were displayed on the Pebble screen is more few.</string>
+    <string name="pref_package_list">Watch List</string>
+    <string name="pref_package_list_summ">Select which App\'s notification your want transmit to Pebble.</string>
     <string name="pref_dnd_time_enabled">Quiet time</string>
     <string name="pref_dnd_time_enabled_summ">Allows you to prevent any notifications from being sent from Pebble messenger to your Pebble</string>
     <string name="pref_dnd_time_before_summ">No notifications before this time</string>
@@ -73,5 +75,27 @@
 
     <string name="ok">Ok</string>
     <string name="cancel">Cancel</string>
+
+    <string name="setup_test_pebble_title">1. Check your Pebble status</string>
+    <string name="setup_accessibility_service_title">2. Enable accessibility service</string>
+    <string name="setup_install_pebble_app">3. Install Pebble app</string>
+    <string name="setup_watch_list">4. Check Watch List</string>
+    <string name="setup_font_base_status">5. Font data base status</string>
+
+    <string name="setup_check_ok">OK</string>
+    <string name="setup_check_empty">Empty</string>
+    <string name="setup_check_bad">Bad</string>
+    <string name="setup_watch_list_warning">Please go to [Setting->Watch List] to add app</string>
+    <string name="setup_button_goto_setting">Setting->Accessibility</string>
+    <string name="setup_button_goto_pebble">Install Pebble APP</string>
+
+    <string name="tools_button_rebuild_font">Rebuild Font Database</string>
+    <string name="tools_button_clean_cache">Clean Notifications History</string>
+    <string name="tools_button_send_message">Send a Message to Pebble</string>
+    <string name="tools_button_send_call">Send a call to Pebble</string>
+    <string name="tools_button_restart_service">Restart Pebble Messenger</string>
+
+    <string name="tools_toast_rebuild_font">Begin to rebuild</string>
+    <string name="tools_toast_clean_cache">Finished cleaning the history</string>
 
 </resources>

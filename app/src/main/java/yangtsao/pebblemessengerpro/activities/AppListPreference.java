@@ -1,8 +1,12 @@
 package yangtsao.pebblemessengerpro.activities;
 
-import android.app.AlertDialog;
+
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
+import android.content.pm.ResolveInfo;
+import android.os.AsyncTask;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -12,10 +16,19 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import org.apache.http.protocol.HTTP;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 
 import yangtsao.pebblemessengerpro.Constants;
 import yangtsao.pebblemessengerpro.R;
@@ -24,14 +37,17 @@ import yangtsao.pebblemessengerpro.R;
  * Created by yunshansimon on 14-8-28.
  */
 public class AppListPreference extends DialogPreference {
-    private String _appList;
+
     private static final String CLASS_TAG="AppListClass";
     private Context _context;
-
+    private ListView lvPackageInfo;
+    private ProgressBar pbInworking;
 
     public AppListPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
         _context=context;
+        setPersistent(false);
+        setDialogLayoutResource(R.layout.app_list_main);
         setPositiveButtonText(R.string.ok);
         setNegativeButtonText(R.string.cancel);
     }
@@ -42,6 +58,15 @@ public class AppListPreference extends DialogPreference {
         return super.onCreateDialogView();
 
     }
+
+    @Override
+    protected void onBindDialogView(View view) {
+        lvPackageInfo=(ListView)view.findViewById(R.id.listView);
+        pbInworking=(ProgressBar) view.findViewById(R.id.progressBar);
+        new LoadAppsTask().execute(LoadAppsTask.SORT_BY_NAME);
+        super.onBindDialogView(view);
+    }
+
     private class packageAdapter extends ArrayAdapter<PackageInfo> implements CompoundButton.OnCheckedChangeListener, View.OnClickListener {
         private final Context       context;
         private final PackageInfo[] packages;
@@ -99,17 +124,7 @@ public class AppListPreference extends DialogPreference {
             public ImageView imageView;
         }
 
-        public class PackageNameComparator implements Comparator<PackageInfo> {
 
-            @Override
-            public int compare(PackageInfo leftPackage, PackageInfo rightPackage) {
-
-                String leftName = leftPackage.applicationInfo.loadLabel(_context.getPackageManager()).toString();
-                String rightName = rightPackage.applicationInfo.loadLabel(_context.getPackageManager()).toString();
-
-                return leftName.compareToIgnoreCase(rightName);
-            }
-        }
 
         @Override
         public void onCheckedChanged(CompoundButton chkEnabled, boolean newState) {
@@ -136,8 +151,153 @@ public class AppListPreference extends DialogPreference {
 
         @Override
         public void onClick(View rowView) {
-            ((CheckBox) rowView.findViewById(R.id.chkEnabled)).performClick();
+            rowView.findViewById(R.id.chkEnabled).performClick();
 
         }
     }
+    private class LoadAppsTask extends AsyncTask<Integer, Integer, List<PackageInfo>> {
+        public ArrayList<String> selected;
+        public static final int  SORT_BY_NAME      = 0;
+        public static final int  SORT_BY_NAME_DESC = 3;
+
+        @Override
+        protected List<PackageInfo> doInBackground(Integer... params) {
+            List<PackageInfo> pkgAppsList = _context.getPackageManager().getInstalledPackages(0);
+            List<PackageInfo> selectedAppsList = new ArrayList<PackageInfo>();
+            List<PackageInfo> suggestedAppsList = new ArrayList<PackageInfo>();
+            selected = new ArrayList<String>();
+
+            String packageList;
+            packageList=getSharedPreferences().getString(Constants.PREFERENCE_PACKAGE_LIST,"");
+            for (String strPackage : packageList.split(",")) {
+                // only add the ones that are still installed, providing cleanup
+                // and faster speeds all in one!
+                Iterator<PackageInfo> iter = pkgAppsList.iterator();
+                while (iter.hasNext()) {
+                    PackageInfo info = iter.next();
+                    if (info.packageName.equalsIgnoreCase(strPackage)) {
+                        selectedAppsList.add(info);
+                        selected.add(strPackage);
+                        iter.remove();
+                        break;
+                    }
+                }
+
+            }
+
+            Intent sendIntent = new Intent();
+            sendIntent.setAction(Intent.ACTION_SEND);
+            //
+            sendIntent.putExtra(Intent.EXTRA_TEXT, "Say hello to world!");
+            sendIntent.setType(HTTP.PLAIN_TEXT_TYPE);
+            List<ResolveInfo> activities = _context.getPackageManager().queryIntentActivities(sendIntent, 0);
+            Constants.log(CLASS_TAG, "There are " + String.valueOf(activities.size()) + " packages were find!");
+            for (ResolveInfo info : activities) {
+
+                Constants.log(CLASS_TAG, "Suggested APP [" + info.activityInfo.packageName + "]");
+                Iterator<PackageInfo> iter = pkgAppsList.iterator();
+                while (iter.hasNext()) {
+                    PackageInfo pinfo = iter.next();
+                    if (pinfo.packageName.equalsIgnoreCase(info.activityInfo.packageName)) {
+                        suggestedAppsList.add(pinfo);
+                        iter.remove();
+                        break;
+                    }
+                }
+            }
+
+            Constants.log(CLASS_TAG, "Suggested APP have " + String.valueOf(suggestedAppsList.size()) + "!");
+            switch (params[0]) {
+                case LoadAppsTask.SORT_BY_NAME:
+                    PackageNameComparator comparer1 = new PackageNameComparator();
+                    if (!selectedAppsList.isEmpty()) {
+                        Collections.sort(selectedAppsList, comparer1);
+                    }
+                    if (!suggestedAppsList.isEmpty()) {
+                        Collections.sort(suggestedAppsList, comparer1);
+                    }
+                    Collections.sort(pkgAppsList, comparer1);
+                    break;
+                case LoadAppsTask.SORT_BY_NAME_DESC:
+                    PackageNameDescComparator comparer2 = new PackageNameDescComparator();
+                    if (!selectedAppsList.isEmpty()) {
+                        Collections.sort(selectedAppsList, comparer2);
+                    }
+                    if (!suggestedAppsList.isEmpty()) {
+                        Collections.sort(suggestedAppsList, comparer2);
+                    }
+                    Collections.sort(pkgAppsList, comparer2);
+                    break;
+
+            }
+            pkgAppsList.addAll(0, suggestedAppsList);
+            pkgAppsList.addAll(0, selectedAppsList);
+            return pkgAppsList;
+        }
+
+        @Override
+        protected void onPostExecute(List<PackageInfo> pkgAppsList) {
+            lvPackageInfo.setAdapter(new packageAdapter(_context, pkgAppsList
+                    .toArray(new PackageInfo[pkgAppsList.size()]), selected));
+            pbInworking.setVisibility(View.GONE);
+
+        }
+        protected class PackageNameComparator implements Comparator<PackageInfo> {
+
+            @Override
+            public int compare(PackageInfo leftPackage, PackageInfo rightPackage) {
+
+                String leftName = leftPackage.applicationInfo.loadLabel(_context.getPackageManager()).toString();
+                String rightName = rightPackage.applicationInfo.loadLabel(_context.getPackageManager()).toString();
+
+                return leftName.compareToIgnoreCase(rightName);
+            }
+        }
+        public class PackageNameDescComparator implements Comparator<PackageInfo> {
+
+            @Override
+            public int compare(PackageInfo leftPackage, PackageInfo rightPackage) {
+
+                String leftName = leftPackage.applicationInfo.loadLabel(_context.getPackageManager()).toString();
+                String rightName = rightPackage.applicationInfo.loadLabel(_context.getPackageManager()).toString();
+
+                return -leftName.compareToIgnoreCase(rightName);
+            }
+        }
+    }
+
+    @Override
+    protected void onDialogClosed(boolean positiveResult) {
+        if (positiveResult) {
+            String selectedPackages = "";
+            ArrayList<String> tmpArray = new ArrayList<String>();
+            if (lvPackageInfo == null || lvPackageInfo.getAdapter() == null) {
+                return;
+            }
+            for (String strPackage : ((packageAdapter) lvPackageInfo.getAdapter()).selected) {
+                if (!strPackage.isEmpty()) {
+                    if (!tmpArray.contains(strPackage)) {
+                        tmpArray.add(strPackage);
+                        selectedPackages += strPackage + ",";
+                    }
+                }
+            }
+            SharedPreferences.Editor editor = getSharedPreferences().edit();
+            editor.putString(Constants.PREFERENCE_PACKAGE_LIST, selectedPackages);
+            editor.commit();
+            File watchFile = new File(_context.getFilesDir() + "PrefsChanged.none");
+            if (!watchFile.exists()) {
+                try {
+                    watchFile.createNewFile();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+            watchFile.setLastModified(System.currentTimeMillis());
+        }
+        super.onDialogClosed(positiveResult);
+    }
+
+
 }

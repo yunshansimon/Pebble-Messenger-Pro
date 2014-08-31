@@ -68,6 +68,8 @@ public class MessageProcessingService extends Service {
     private Calendar quiet_hours_before    = null;
     private Calendar      quiet_hours_after     = null;
     private boolean   callQuietEnable       = false;
+    private int fChars;  //line contain chars
+    private int fLines;  //page contain lines
 
     private Messenger rPebbleCenter =null;
     private final ServiceConnection connToPebbleCenter =new ServiceConnection() {
@@ -556,6 +558,25 @@ public class MessageProcessingService extends Service {
             pieces = sharedPref.getString(Constants.PREFERENCE_QUIET_HOURS_AFTER, "23:59").split(":");
             quiet_hours_after = new GregorianCalendar(0, 0, 0, Integer.parseInt(pieces[0]), Integer.parseInt(pieces[1]));
         }
+        switch (Integer.parseInt(sharedPref.getString(Constants.PREFERENCE_MESSAGE_SCALE,String.valueOf(Constants.MESSAGE_SCALE_SMALL)))){
+            case Constants.MESSAGE_SCALE_SMALL:
+                fChars=Constants.SMALL_LINE_CONTAIN_CHARS;
+                fLines=Constants.SMALL_PAGE_CONTAIN_LINES;
+                break;
+            case Constants.MESSAGE_SCALE_MID:
+                fChars=Constants.MID_LINE_CONTAIN_CHARS;
+                fLines=Constants.MID_PAGE_CONTAIN_LINES;
+                break;
+            case Constants.MESSAGE_SCALE_LARGE:
+                fChars=Constants.LARGE_LINE_CONTAIN_CHARS;
+                fLines=Constants.LARGE_PAGE_CONTAIN_LINES;
+                break;
+        }
         lastChange = watchFile.lastModified();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return START_STICKY;
     }
 }

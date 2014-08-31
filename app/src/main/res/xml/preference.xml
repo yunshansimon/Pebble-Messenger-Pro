@@ -4,6 +4,11 @@
     <PreferenceCategory
         android:key="pref_cat_gen"
         android:title="@string/pref_cat_notif" >
+        <yangtsao.pebblemessengerpro.activities.AppListPreference
+            android:key="pref_package_list"
+            android:defaultValue=""
+            android:title="@string/pref_package_list"
+            android:summary="@string/pref_package_list_summ" />
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="pref_notif_only"
@@ -36,13 +41,13 @@
             android:key="pref_dnd_time_enabled"
             android:summary="@string/pref_dnd_time_enabled_summ"
             android:title="@string/pref_dnd_time_enabled" />
-        <yangtsao.pebblemessengerpro.activities.TimePreference.TimePreference
+        <yangtsao.pebblemessengerpro.activities.TimePreference
             android:key="pref_dnd_time_before"
             android:dependency="pref_dnd_time_enabled"
             android:summary="@string/pref_dnd_time_before_summ"
             android:title="@string/pref_dnd_time_before"
             android:defaultValue="06:00" />
-        <yangtsao.pebblemessengerpro.activities.TimePreference.TimePreference
+        <yangtsao.pebblemessengerpro.activities.TimePreference
             android:key="pref_dnd_time_after"
             android:dependency="pref_dnd_time_enabled"
             android:summary="@string/pref_dnd_time_after_summ"

@@ -13,6 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import yangtsao.pebblemessengerpro.Constants;
 import yangtsao.pebblemessengerpro.R;
 
 public class NavigationActivity extends Activity
@@ -27,6 +28,8 @@ public class NavigationActivity extends Activity
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
     private CharSequence mTitle;
+
+    private static final String CLASS_TAG="Navigate_Main";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,35 +49,42 @@ public class NavigationActivity extends Activity
     @Override
     public void onNavigationDrawerItemSelected(int position) {
         // update the main content by replacing fragments
+        Constants.log(CLASS_TAG,"Navigation Item Selected:" + String.valueOf(position));
         FragmentManager fragmentManager = getFragmentManager();
         switch (position){
-            case 1:
+            case 0:
+                fragmentManager.beginTransaction()
+                        .replace(R.id.container,new SetupFragment())
+                        .commit();
+
                 break;
-            case 2:
+            case 1:
                 fragmentManager.beginTransaction()
                         .replace(R.id.container,new SettingFragment())
                         .commit();
                 break;
+            case 2:
+
+                break;
             case 3:
                 break;
-            case 4:
-                break;
+
         }
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
-                .commit();
     }
 
     public void onSectionAttached(int number) {
+        Constants.log(CLASS_TAG,"Section Attached:" + String.valueOf(number));
         switch (number) {
+            case 0:
+                mTitle=getString(R.string.title_intro_setup_activity);
             case 1:
-                mTitle = getString(R.string.title_intro_setup_activity);
-                break;
-            case 2:
                 mTitle = getString(R.string.title_setting_activity);
                 break;
-            case 3:
+            case 2:
                 mTitle = getString(R.string.title_tools_activity);
+                break;
+            case 3:
+                mTitle = getString(R.string.title_about_activity);
                 break;
             case 4:
                 mTitle=getString(R.string.title_about_activity);
