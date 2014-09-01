@@ -99,6 +99,7 @@
     <string name="tools_toast_clean_cache">Finished cleaning the history</string>
     <string name="tools_toast_send_message">The message is sent to Pebble</string>
     <string name="tools_toast_send_call">The call is sent to Pebble</string>
+    <string name="tools_toast_restart_service">The services are restarting.</string>
 
     <string name="dialog_send_message_hint">Input message to your pebble</string>
     <string name="dialog_send_call_name_hint">Name of incoming call</string>
