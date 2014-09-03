@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.accessibilityservice.AccessibilityService;
@@ -359,31 +360,23 @@ public class NotificationService extends AccessibilityService {
             ;
         }
         public  String queryNameByNum(String num) {
-            String findNum=rawNumber(num);
-            Cursor cursor=getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                    new String[]{
-                            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
-                            ContactsContract.CommonDataKinds.Phone.NUMBER
-                    },
-                    ContactsContract.CommonDataKinds.Phone.HAS_PHONE_NUMBER, null, null);
-            if (cursor==null){
-                return getString(R.string.notificationservice_unknownperson);
-            }
-            int columnNumberId=cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+            Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(num));
+
+            Cursor cursor = getContentResolver().query(uri, new String[] {
+                    ContactsContract.PhoneLookup.DISPLAY_NAME
+            }, null, null, null);
             String nameString=getString(R.string.notificationservice_unknownperson);
-            cursor.moveToFirst();
-            do{
-                if(rawNumber(cursor.getString(columnNumberId)).matches(findNum + "$")){
-                    nameString=cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-                    break;
+            if (cursor!=null){
+                if (cursor.moveToFirst()){
+                    int columnNumberId=cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME);
+                    nameString=cursor.getString(columnNumberId);
                 }
-            }while (cursor.moveToNext());
+                cursor.close();
+            }
             return nameString;
             }
 
-        public String rawNumber (String num){
-            return num.replaceAll("\\(*?\\)","").replaceAll("\\D","").replaceFirst("^[0]+","");
-        }
+
     }
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
