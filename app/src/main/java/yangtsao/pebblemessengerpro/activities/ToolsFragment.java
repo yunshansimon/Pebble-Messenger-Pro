@@ -29,6 +29,8 @@ import yangtsao.pebblemessengerpro.R;
 import yangtsao.pebblemessengerpro.db.FontDbHandler;
 import yangtsao.pebblemessengerpro.db.MessageDbHandler;
 import yangtsao.pebblemessengerpro.services.MessageProcessingService;
+import yangtsao.pebblemessengerpro.services.NotificationService;
+import yangtsao.pebblemessengerpro.services.PebbleCenter;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -60,6 +62,10 @@ public class ToolsFragment extends Fragment {
 
     private Context _context;
     private static final int positionIndex=2;
+    private FontDbHandler fd;
+    private MessageDbHandler md;
+    private SendMessageFragment sf;
+    private SendCallFragment sc;
 
     public ToolsFragment() {
         // Required empty public constructor
@@ -72,36 +78,49 @@ public class ToolsFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View toolsView=inflater.inflate(R.layout.fragment_tools, container, false);
+        fd=new FontDbHandler(_context);
+        fd.open();
+        md=new MessageDbHandler(_context);
+        md.open();
+        sf=new SendMessageFragment();
+        sf.setTargetFragment(this,REQUEST_SEND_MESSAGE);
+        sc=new SendCallFragment();
+        sc.setTargetFragment(this, REQUEST_SEND_CALL);
         toolsView.findViewById(R.id.button_rebuild_font).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Toast.makeText(_context, R.string.tools_toast_rebuild_font, Toast.LENGTH_LONG).show();
-                (new FontDbHandler(_context)).rebuild();
+                fd.rebuild();
             }
         });
         toolsView.findViewById(R.id.button_clean_message_cache).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Toast.makeText(_context, R.string.tools_toast_clean_cache, Toast.LENGTH_LONG).show();
-                (new MessageDbHandler(_context)).cleanAll();
+                md.cleanAll();
             }
         });
         toolsView.findViewById(R.id.button_test_message).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                FragmentManager fm=getFragmentManager();
-                SendMessageFragment sf=new SendMessageFragment();
-                sf.setTargetFragment(fm.findFragmentById(R.id.toolsfragment),REQUEST_SEND_MESSAGE);
-                sf.show(fm,"Test Messenger");
+
+                sf.show(getFragmentManager(),"Test Messenger");
             }
         });
         toolsView.findViewById(R.id.button_test_call).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                FragmentManager fm=getFragmentManager();
-                SendCallFragment sf=new SendCallFragment();
-                sf.setTargetFragment(fm.findFragmentById(R.id.toolsfragment),REQUEST_SEND_CALL);
-                sf.show(fm,"Test Call");
+
+                sc.show(getFragmentManager(), "Test Call");
+            }
+        });
+        toolsView.findViewById(R.id.button_restart_service).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                _context.stopService(new Intent(getActivity(), NotificationService.class));
+                _context.stopService(new Intent(getActivity(), MessageProcessingService.class));
+                _context.stopService(new Intent(getActivity(), PebbleCenter.class));
+                Toast.makeText(_context,R.string.tools_toast_restart_service,Toast.LENGTH_LONG);
             }
         });
 
@@ -189,12 +208,13 @@ public class ToolsFragment extends Fragment {
                 msg.what=MessageProcessingService.MSG_NEW_MESSAGE;
                 b.putString(MessageDbHandler.COL_MESSAGE_APP, LOG_TAG);
                 b.putString(MessageDbHandler.COL_MESSAGE_CONTENT,data.getStringExtra(MESSAGE_BODY));
-                Toast.makeText(_context,R.string.tools_toast_send_message,Toast.LENGTH_SHORT);
+                Toast.makeText(_context,R.string.tools_toast_send_message,Toast.LENGTH_LONG);
                 break;
             case REQUEST_SEND_CALL:
                 msg.what=MessageProcessingService.MSG_NEW_CALL;
                 b.putString(MessageDbHandler.COL_CALL_NUMBER,data.getStringExtra(CALL_NUM));
                 b.putString(MessageDbHandler.COL_CALL_NAME,data.getStringExtra(CALL_NAME));
+                Toast.makeText(_context,R.string.tools_toast_send_call,Toast.LENGTH_LONG);
                 break;
         }
         try {
@@ -204,5 +224,12 @@ public class ToolsFragment extends Fragment {
             Constants.log(LOG_TAG,"Error when sending message to MessageProcessingService.");
         }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public void onDestroy() {
+        fd.close();
+        md.close();
+        super.onDestroy();
     }
 }
