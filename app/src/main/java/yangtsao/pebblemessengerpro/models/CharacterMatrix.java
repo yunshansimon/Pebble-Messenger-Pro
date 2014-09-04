@@ -37,8 +37,8 @@ public class CharacterMatrix {
                 end[0] = (byte) ((value >>> 8) & 0xFF);
 
                 // Reverse the 1s and 0s to write black on white bg
-                end[1] = (byte) (~end[1] & 0xff);
-                end[0] = (byte) (~end[0] & 0xff);
+                //end[1] = (byte) (~end[1] & 0xff);
+                //end[0] = (byte) (~end[0] & 0xff);
 
                 end[1] = (byte) (Integer.reverse(end[1]) >>> 24);
                 end[0] = (byte) (Integer.reverse(end[0]) >>> 24);

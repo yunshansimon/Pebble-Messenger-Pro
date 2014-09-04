@@ -67,6 +67,7 @@ public class PebbleCenter extends Service {
     private int fChars;  //line contain chars
     private int fLines;  //page contain lines
     private int fLength; //package max length
+    private byte char_scale;
     private File watchFile;
     private Long lastChange;
     private Long timeOut;
@@ -117,6 +118,7 @@ public class PebbleCenter extends Service {
     private static final int ID_UNICHR_WIDTH=7;
     private static final int ID_UNICHR_POS=8;
     private static final int ID_CLOSE_DELAY_SEC=9;
+    private static final int ID_CHAR_SCALE=10;
 
     private Handler prepareThreadHandler;
     private Handler sendMsgThreadHandler;
@@ -467,6 +469,7 @@ public class PebbleCenter extends Service {
         dataMsg.addInt8(ID_COMMAND,REMOTE_EXCUTE_NEW_MESSAGE);
         if (appStatue==0) {
             dataMsg.addInt8(ID_CLOSE_DELAY_SEC, (byte) (timeOut / 1000));
+            dataMsg.addInt8(ID_CHAR_SCALE,char_scale);
         }
         sendQueue.add(dataMsg);
         for(int page=1;page<=listPM.size();page++){
@@ -652,8 +655,8 @@ public class PebbleCenter extends Service {
         fLength=Constants.MAX_PACKAGE_LENGTH;
         timeOut=sharedPref.getLong(Constants.PREFERENCE_MIN_NOTIFICATION_WAIT, 5000);
         callMessengerEnable = sharedPref.getBoolean(Constants.PREFERENCE_CALL_ENABLE, true);
-
-        switch (Integer.parseInt(sharedPref.getString(Constants.PREFERENCE_MESSAGE_SCALE,String.valueOf(Constants.MESSAGE_SCALE_SMALL)))){
+        char_scale=(byte)Integer.parseInt(sharedPref.getString(Constants.PREFERENCE_MESSAGE_SCALE,String.valueOf(Constants.MESSAGE_SCALE_SMALL)));
+        switch ((int)char_scale){
             case Constants.MESSAGE_SCALE_SMALL:
                 fChars=Constants.SMALL_LINE_CONTAIN_CHARS;
                 fLines=Constants.SMALL_PAGE_CONTAIN_LINES;
