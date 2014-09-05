@@ -327,15 +327,7 @@ public class MessageProcessingService extends Service {
                         col = 0;
                         message.AddCharToAscMsg(originalMessage.charAt(0));
                     } else {
-                        if (col < 16) {
-                            if (col == 15) {
-                                if (message.getAscMsg().matches("\\w\\z") && originalMessage.matches("\\A\\w")) {
-                                    message.AddStringToAscMsg("-\n");
-                                    row++;
-                                    col = 0;
-                                }
-                            }
-
+                        if (col < fChars) {
                             col++;
                             message.AddCharToAscMsg(originalMessage.charAt(0));
                         } else {
@@ -368,7 +360,7 @@ public class MessageProcessingService extends Service {
                     CharacterMatrix c = new CharacterMatrix(originalHex);
 
                     if (c.getWidthBytes() == 2) {
-                        if (col < 15) {
+                        if (col < (fChars-1)) {
                             c.setPos(row, col + 1);
                             message.AddStringToAscMsg("  ");
                             col += 2;
@@ -382,7 +374,7 @@ public class MessageProcessingService extends Service {
                         }
 
                     } else {
-                        if (col < 16) {
+                        if (col < fChars) {
                             c.setPos(row, col + 1);
                             message.AddCharToAscMsg(' ');
                             col++;
@@ -399,13 +391,6 @@ public class MessageProcessingService extends Service {
 
                     characterQueue.add(c);
 
-                }
-
-                if (row > 8 && (col > 10 || originalMessage.charAt(0) == '\n')) {
-                    Constants.log("codepoint", "too many chars!the end char='" + (char) codepoint + "'");
-                    message.AddStringToAscMsg("...");
-
-                    break;
                 }
                 originalMessage = originalMessage.substring(1);
             }

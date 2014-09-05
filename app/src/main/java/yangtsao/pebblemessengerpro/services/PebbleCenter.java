@@ -497,9 +497,9 @@ public class PebbleCenter extends Service {
                 int size = cm.getByteList().size();
                 byte[] b2 = new byte[size];
                 cm.getbyteArray(b2,size);
-                dataMsg.addBytes(ID_UNICHR_BYTES, b2);
                 dataMsg.addInt8(ID_UNICHR_WIDTH,(byte) cm.getWidthBytes());
                 dataMsg.addBytes(ID_UNICHR_POS,cm.getPos());
+                dataMsg.addBytes(ID_UNICHR_BYTES, b2);
                 sendQueue.add(dataMsg);
             }
 
