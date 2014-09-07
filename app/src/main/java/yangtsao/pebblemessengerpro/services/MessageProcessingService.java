@@ -76,6 +76,7 @@ public class MessageProcessingService extends Service {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             rPebbleCenter=new Messenger(iBinder);
+            Constants.log(TAG_NAME,"Connect to PebbleCenter");
         }
 
         @Override
@@ -88,6 +89,7 @@ public class MessageProcessingService extends Service {
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
         //throw new UnsupportedOperationException("Not yet implemented");
+        Constants.log(TAG_NAME,"Bind to others!");
         return mMessenger.getBinder();
     }
     @Override
@@ -115,7 +117,7 @@ public class MessageProcessingService extends Service {
         mdb.open();
         bindService(new Intent(this, PebbleCenter.class), connToPebbleCenter,
                 Context.BIND_AUTO_CREATE);
-
+        Constants.log(TAG_NAME,"The service is Ok!");
     }
 
     @Override
@@ -136,10 +138,12 @@ public class MessageProcessingService extends Service {
             if (watchFile.lastModified() > lastChange) {
                 loadPrefs();
             }
+            Constants.log(TAG_NAME,"New msg arrived. what:" + String.valueOf(msg.what));
             switch (msg.what){
                 case MSG_NEW_MESSAGE:
+                    Constants.log(TAG_NAME,"New msg case NEW_MESSAGE, quite_hours:" + String.valueOf(quiet_hours));
                     if (quiet_hours) {
-
+                        Constants.log(TAG_NAME,"Get new message!");
                         Calendar c = Calendar.getInstance();
                         Calendar now = new GregorianCalendar(0, 0, 0, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE));
                         Constants.log(TAG_NAME, "Checking quiet hours. Now: " + now.toString() + " vs "
@@ -148,11 +152,21 @@ public class MessageProcessingService extends Service {
                             Constants.log(TAG_NAME, "Time is before or after the quiet hours time. Returning.");
                             addNewMessage(msg.getData(), MessageDbHandler.NEW_ICON);
                         } else {
-                            addNewMessage(msg.getData(), MessageDbHandler.OLD_ICON);
+                            Bundle b=msg.getData();
+                            b.putLong(MessageDbHandler.COL_MESSAGE_ID,addNewMessage(msg.getData(), MessageDbHandler.OLD_ICON));
                             Message innerMsg=processHandler.obtainMessage(INNER_MESSAGE_PROCEED);
-                            innerMsg.setData(msg.getData());
+                            innerMsg.setData(b);
+
                             processHandler.sendMessage(innerMsg);
                         }
+                    }else{
+                        Bundle b=msg.getData();
+                        b.putLong(MessageDbHandler.COL_MESSAGE_ID,addNewMessage(msg.getData(), MessageDbHandler.OLD_ICON));
+                        Message innerMsg=processHandler.obtainMessage(INNER_MESSAGE_PROCEED);
+                        innerMsg.setData(b);
+                        Constants.log(TAG_NAME,"id:" + String.valueOf(b.getLong(MessageDbHandler.COL_MESSAGE_ID)));
+                        processHandler.sendMessage(innerMsg);
+                        Constants.log(TAG_NAME,"The msg send to inner handler.");
                     }
                     break;
                 case MSG_NEW_CALL:
@@ -166,11 +180,18 @@ public class MessageProcessingService extends Service {
                             Constants.log(TAG_NAME, "Time is before or after the quiet hours time. Returning.");
                             addNewCall(msg.getData(),MessageDbHandler.NEW_ICON);
                         } else {
-                            addNewCall(msg.getData(),MessageDbHandler.OLD_ICON);
+                            Bundle b=msg.getData();
+                            b.putLong(MessageDbHandler.COL_CALL_ID, addNewCall(msg.getData(),MessageDbHandler.OLD_ICON));
                             Message innerMsg=processHandler.obtainMessage(INNER_CALL_PROCEED);
                             innerMsg.setData(msg.getData());
                             processHandler.sendMessage(innerMsg);
                         }
+                    }else{
+                        Bundle b=msg.getData();
+                        b.putLong(MessageDbHandler.COL_CALL_ID, addNewCall(msg.getData(),MessageDbHandler.OLD_ICON));
+                        Message innerMsg=processHandler.obtainMessage(INNER_CALL_PROCEED);
+                        innerMsg.setData(msg.getData());
+                        processHandler.sendMessage(innerMsg);
                     }
                     break;
                 case MSG_MESSAGE_READY: {
@@ -256,16 +277,16 @@ public class MessageProcessingService extends Service {
             }
         }
 
-        private void addNewMessage(Bundle b, String icon){
+        private Long addNewMessage(Bundle b, String icon){
             Time nowTime= new Time();
             nowTime.setToNow();
-            mdb.addMessage(nowTime,b.getString(MessageDbHandler.COL_MESSAGE_APP),b.getString(MessageDbHandler.COL_MESSAGE_CONTENT),icon);
+            return mdb.addMessage(nowTime,b.getString(MessageDbHandler.COL_MESSAGE_APP),b.getString(MessageDbHandler.COL_MESSAGE_CONTENT),icon);
         }
 
-        private void addNewCall(Bundle b , String icon) {
+        private Long addNewCall(Bundle b , String icon) {
             Time nowTime=new Time();
             nowTime.setToNow();
-            mdb.addCall(nowTime,b.getString(MessageDbHandler.COL_CALL_NUMBER),b.getString(MessageDbHandler.COL_CALL_NAME),icon);
+            return mdb.addCall(nowTime,b.getString(MessageDbHandler.COL_CALL_NUMBER),b.getString(MessageDbHandler.COL_CALL_NAME),icon);
         }
     }
 
@@ -276,6 +297,7 @@ public class MessageProcessingService extends Service {
 
         @Override
         public void handleMessage(Message msg) {
+            Constants.log(TAG_NAME,"InnerHandler get msg. what:" + String.valueOf(msg.what));
             switch (msg.what){
                 case INNER_MESSAGE_PROCEED:
                 {   PebbleMessage pMessage=processMessage(msg.getData());
@@ -310,6 +332,7 @@ public class MessageProcessingService extends Service {
                 originalMessage = b.getString(MessageDbHandler.COL_MESSAGE_CONTENT).substring(0, 179).replaceAll("\\n+", "\n");
             }
             PebbleMessage message = new PebbleMessage();
+            message.set_id(b.getLong(MessageDbHandler.COL_MESSAGE_ID));
             // Clear the characterQueue, just in case
             Deque<CharacterMatrix> characterQueue = new ArrayDeque<CharacterMatrix>();
             while(originalMessage.length()>0)
@@ -396,6 +419,7 @@ public class MessageProcessingService extends Service {
             }
 
             message.setCharacterQueue(characterQueue);
+            Constants.log(TAG_NAME,"Handled the message!");
             return message;
         }
 
@@ -411,6 +435,7 @@ public class MessageProcessingService extends Service {
             }
 
             PebbleCall message = new PebbleCall();
+            message.set_id(b.getLong(MessageDbHandler.COL_CALL_ID));
             message.setPhoneNum(phone);
             // Clear the characterQueue, just in case
             Deque<CharacterMatrix> characterQueue = new ArrayDeque<CharacterMatrix>();
@@ -528,6 +553,7 @@ public class MessageProcessingService extends Service {
         @Override
         public void run() {
             Looper.prepare();
+            Constants.log(TAG_NAME,"Inner handler is running.");
             processHandler=new InnerThreadHandler(Looper.myLooper());
             Looper.loop();
         }

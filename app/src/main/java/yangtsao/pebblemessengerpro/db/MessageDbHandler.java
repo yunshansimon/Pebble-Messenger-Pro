@@ -42,6 +42,8 @@ public class MessageDbHandler extends SQLiteOpenHelper {
     private final int MAXSTORE=10;
     private SQLiteDatabase _db;
 
+    private static final String TAG_NAME="MessageDbHandler";
+
     public MessageDbHandler(Context context) {
         super(context, DBNAME, null, VERSION);
         this._context = context;
@@ -57,9 +59,11 @@ public class MessageDbHandler extends SQLiteOpenHelper {
                 Constants.log("Database", "Starting messagedb creation");
                 String CREATE_FONT_TABLE = "CREATE TABLE " + TABLE_MESSAGE_NAME + "(" + COL_MESSAGE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
                         + COL_MESSAGE_TIME + " TEXT," + COL_MESSAGE_APP + " TEXT," + COL_MESSAGE_CONTENT + " TEXT "  + COL_MESSAGE_NEW  +  " TEXT)";
+                Constants.log(TAG_NAME, "Build new msg table:" + CREATE_FONT_TABLE);
                 dbThread.execSQL(CREATE_FONT_TABLE);
                 CREATE_FONT_TABLE ="CREATE TABLE " + TABLE_CALL_NAME + "(" + COL_CALL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
                         + COL_CALL_TIME + " TEXT," + COL_CALL_NUMBER + " TEXT," + COL_CALL_NAME + " TEXT "  + COL_CALL_NEW  + " TEXT)";
+                Constants.log(TAG_NAME, "Build new call table:" + CREATE_FONT_TABLE);
                 dbThread.execSQL(CREATE_FONT_TABLE);
             }
 
@@ -179,6 +183,7 @@ public class MessageDbHandler extends SQLiteOpenHelper {
         }
         if (cursor.getCount()>0){
             cursor.moveToFirst();
+            content.putString(MessageDbHandler.COL_MESSAGE_ID,ID);
             content.putString(MessageDbHandler.COL_MESSAGE_CONTENT,cursor.getString(3));
             if (cursor.getString(4).equalsIgnoreCase(NEW_ICON)) {
                 ContentValues values = new ContentValues();
@@ -201,6 +206,7 @@ public class MessageDbHandler extends SQLiteOpenHelper {
         }
         if (cursor.getCount()>0){
             cursor.moveToFirst();
+            content.putString(MessageDbHandler.COL_CALL_ID,ID);
             content.putString(MessageDbHandler.COL_CALL_NUMBER,cursor.getString(2));
             content.putString(MessageDbHandler.COL_CALL_NAME,cursor.getString(3));
             if (cursor.getString(4).equalsIgnoreCase(NEW_ICON)) {

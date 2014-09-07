@@ -58,6 +58,7 @@ public class NotificationService extends AccessibilityService {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             rPebbleCenterHandler=new Messenger(iBinder);
+            Constants.log(LOG_TAG,"Connect to PebbleCenterHandler!");
         }
 
         @Override
@@ -70,6 +71,7 @@ public class NotificationService extends AccessibilityService {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             rMessageProcessHandler=new Messenger(iBinder);
+            Constants.log(LOG_TAG,"Connect to MessageProcessHandler!");
         }
 
         @Override
@@ -150,12 +152,8 @@ public class NotificationService extends AccessibilityService {
             Constants.log(LOG_TAG, "Fetching extras from notification");
             Parcelable parcelable = event.getParcelableData();
             if (parcelable instanceof Notification) {
-                String str = getExtraBigData((Notification) parcelable, notificationText.trim());
-                if (notificationText.contains(str)) {
-
-                } else {
-                    notificationText += "\n" + str;
-                }
+                String str = getExtraBigData((Notification) parcelable, notificationText);
+                notificationText += "\n" + str;
             }
         }
         if (notificationText.length() == 0) {
@@ -166,6 +164,7 @@ public class NotificationService extends AccessibilityService {
         Bundle b=new Bundle();
         b.putString(MessageDbHandler.COL_MESSAGE_APP,title);
         b.putString(MessageDbHandler.COL_MESSAGE_CONTENT,notificationText);
+        Constants.log(LOG_TAG,"Send new message title:"+ title + " boty:" + notificationText);
         msg.setData(b);
         try {
             rMessageProcessHandler.send(msg);
@@ -242,7 +241,7 @@ public class NotificationService extends AccessibilityService {
 
             if (v instanceof TextView) {
                 TextView tv = (TextView) v;
-                if (tv.getText().toString() == "..." || tv.getText().toString() == "�"
+                if (tv.getText().toString() == "..."
                         || isInteger(tv.getText().toString()) || existing_text.contains(tv.getText().toString().trim())) {
                     Constants.log(LOG_TAG, "Text is: " + tv.getText().toString()
                                 + " but I am going to skip this");

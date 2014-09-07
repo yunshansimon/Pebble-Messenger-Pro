@@ -14,11 +14,24 @@ public class PebbleMessage implements Serializable {
     private Deque<CharacterMatrix> _characterQueue;
     /* store the unicode character's imgs and their positions */
     private String                 _ascmsg;
+    private Long                   _id;
 
     /*
      * store the ascii String and blank space where should display unicode
      * character
      */
+
+    public Long get_id() {
+        return _id;
+    }
+
+    public void set_id(Long id) {
+        if (id<0) {
+            this._id =(long) 0;
+        }else {
+            this._id = id;
+        }
+    }
 
     public String getAscMsg() {
         return _ascmsg;

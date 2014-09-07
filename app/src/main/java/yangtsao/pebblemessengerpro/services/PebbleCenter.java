@@ -119,12 +119,16 @@ public class PebbleCenter extends Service {
     private static final int ID_UNICHR_POS=8;
     private static final int ID_CLOSE_DELAY_SEC=9;
     private static final int ID_CHAR_SCALE=10;
+    private static final int ID_INFO_ID=11;
+
+    private static final String TAG_NAME="PebbleCenter";
 
     private Handler prepareThreadHandler;
     private Handler sendMsgThreadHandler;
 
     private Thread prepareThread;
     private Thread sendMsgThread;
+
 
     private Context _contex;
 
@@ -309,6 +313,7 @@ public class PebbleCenter extends Service {
     class PebbleCenterHandler extends Handler{
         @Override
         public void handleMessage(Message msg) {
+            Constants.log(TAG_NAME,"Get a msg. Pebble is " + String.valueOf(isPebbleEnable) + " what:" + String.valueOf(msg.what));
             if(!isPebbleEnable) return;
             if (watchFile.lastModified() > lastChange) {
                 loadPref();
@@ -427,12 +432,12 @@ public class PebbleCenter extends Service {
         for (int pg=1;pg<=totalPackges;pg++){
             dataMsg=new PebbleDictionary();
             if (pg==1){
-                dataMsg.addInt8(ID_COMMAND,commandID);
+                dataMsg.addUint8(ID_COMMAND,commandID);
             }else{
-                dataMsg.addInt8(ID_COMMAND,REMOTE_DISPLAY_CONTINUE);
+                dataMsg.addUint8(ID_COMMAND,REMOTE_DISPLAY_CONTINUE);
             }
-            dataMsg.addInt8(ID_TOTAL_PACKAGES,totalPackges);
-            dataMsg.addInt8(ID_PACKAGE_NUM,(byte) pg);
+            dataMsg.addUint8(ID_TOTAL_PACKAGES,totalPackges);
+            dataMsg.addUint8(ID_PACKAGE_NUM,(byte) pg);
             dataMsg.addString(ID_ASCSTR,strMsg.substring(pg*MAX_CHARS_PACKAGE_CONTAIN,MAX_CHARS_PACKAGE_CONTAIN-1));
             sendQueue.add(dataMsg);
         }
@@ -444,6 +449,7 @@ public class PebbleCenter extends Service {
         int pageCount=bigInt(splitString.length / fLines);
         for (int page=1;page<=pageCount;page++){
             PebbleMessage itemPm=new PebbleMessage();
+            itemPm.set_id(tmpPM.get_id());
             StringBuilder tmpSB=new StringBuilder();
             for (int line=1;line<=fLines;line++){
                 tmpSB.append(splitString[(page-1)*fLines+line-1]);
@@ -466,10 +472,11 @@ public class PebbleCenter extends Service {
 
     private void split_message_to_packages_add_to_sendQue(List<PebbleMessage> listPM){
         PebbleDictionary dataMsg=new PebbleDictionary();
-        dataMsg.addInt8(ID_COMMAND,REMOTE_EXCUTE_NEW_MESSAGE);
+        dataMsg.addUint8(ID_COMMAND,REMOTE_EXCUTE_NEW_MESSAGE);
         if (appStatue==0) {
-            dataMsg.addInt8(ID_CLOSE_DELAY_SEC, (byte) (timeOut / 1000));
-            dataMsg.addInt8(ID_CHAR_SCALE,char_scale);
+            dataMsg.addUint8(ID_CLOSE_DELAY_SEC, (byte) (timeOut / 1000));
+            dataMsg.addUint8(ID_CHAR_SCALE,char_scale);
+            dataMsg.addUint32(ID_INFO_ID, listPM.get(0).get_id().intValue());
         }
         sendQueue.add(dataMsg);
         for(int page=1;page<=listPM.size();page++){
@@ -478,26 +485,26 @@ public class PebbleCenter extends Service {
             byte totalPackages=(byte) (dealPM.getCharacterQueue().size()+strPackages);
             for (int pg=1;pg<=strPackages;pg++){
                 dataMsg=new PebbleDictionary();
-                dataMsg.addInt8(ID_COMMAND,REMOTE_EXCUTE_CONTINUE_MESSAGE);
-                dataMsg.addInt8(ID_TOTAL_PAGES,(byte)listPM.size());
-                dataMsg.addInt8(ID_PAGE_NUM,(byte)page);
-                dataMsg.addInt8(ID_TOTAL_PACKAGES,totalPackages);
-                dataMsg.addInt8(ID_PACKAGE_NUM,(byte) pg);
+                dataMsg.addUint8(ID_COMMAND,REMOTE_EXCUTE_CONTINUE_MESSAGE);
+                dataMsg.addUint8(ID_TOTAL_PAGES,(byte)listPM.size());
+                dataMsg.addUint8(ID_PAGE_NUM,(byte)page);
+                dataMsg.addUint8(ID_TOTAL_PACKAGES,totalPackages);
+                dataMsg.addUint8(ID_PACKAGE_NUM,(byte) pg);
                 dataMsg.addString(ID_ASCSTR,dealPM.getAscMsg().substring(pg*MAX_CHARS_PACKAGE_CONTAIN,MAX_CHARS_PACKAGE_CONTAIN-1));
                 sendQueue.add(dataMsg);
             }
             for (int pg=strPackages+1;pg<=totalPackages;pg++){
                 dataMsg=new PebbleDictionary();
-                dataMsg.addInt8(ID_COMMAND,REMOTE_EXCUTE_CONTINUE_MESSAGE);
-                dataMsg.addInt8(ID_TOTAL_PAGES,(byte)listPM.size());
-                dataMsg.addInt8(ID_PAGE_NUM,(byte)page);
-                dataMsg.addInt8(ID_TOTAL_PACKAGES,totalPackages);
-                dataMsg.addInt8(ID_PACKAGE_NUM,(byte) pg);
+                dataMsg.addUint8(ID_COMMAND,REMOTE_EXCUTE_CONTINUE_MESSAGE);
+                dataMsg.addUint8(ID_TOTAL_PAGES,(byte)listPM.size());
+                dataMsg.addUint8(ID_PAGE_NUM,(byte)page);
+                dataMsg.addUint8(ID_TOTAL_PACKAGES,totalPackages);
+                dataMsg.addUint8(ID_PACKAGE_NUM,(byte) pg);
                 CharacterMatrix cm=dealPM.getCharacterQueue().pollFirst();
                 int size = cm.getByteList().size();
                 byte[] b2 = new byte[size];
                 cm.getbyteArray(b2,size);
-                dataMsg.addInt8(ID_UNICHR_WIDTH,(byte) cm.getWidthBytes());
+                dataMsg.addUint8(ID_UNICHR_WIDTH,(byte) cm.getWidthBytes());
                 dataMsg.addBytes(ID_UNICHR_POS,cm.getPos());
                 dataMsg.addBytes(ID_UNICHR_BYTES, b2);
                 sendQueue.add(dataMsg);
@@ -512,25 +519,26 @@ public class PebbleCenter extends Service {
         PebbleDictionary dataMsg;
         for (int pg=totalPackages;pg>1;pg--){
             dataMsg=new PebbleDictionary();
-            dataMsg.addInt8(ID_COMMAND,REMOTE_EXCUTE_CONTINUE_CALL);
-            dataMsg.addInt8(ID_TOTAL_PACKAGES,totalPackages);
-            dataMsg.addInt8(ID_PACKAGE_NUM,(byte) pg);
+            dataMsg.addUint8(ID_COMMAND,REMOTE_EXCUTE_CONTINUE_CALL);
+            dataMsg.addUint8(ID_TOTAL_PACKAGES,totalPackages);
+            dataMsg.addUint8(ID_PACKAGE_NUM,(byte) pg);
+            dataMsg.addUint32(ID_INFO_ID,pbCall.get_id().intValue());
             CharacterMatrix cm= pbCall.getCharacterQueue().pollLast();
             int size=cm.getByteList().size();
             byte[] b2=new byte[size];
             cm.getbyteArray(b2,size);
             dataMsg.addBytes(ID_UNICHR_BYTES, b2);
-            dataMsg.addInt8(ID_UNICHR_WIDTH,(byte) cm.getWidthBytes());
+            dataMsg.addUint8(ID_UNICHR_WIDTH,(byte) cm.getWidthBytes());
             dataMsg.addBytes(ID_UNICHR_POS,cm.getPos());
             sendQueue.addFirst(dataMsg);
         }
         dataMsg=new PebbleDictionary();
-        dataMsg.addInt8(ID_COMMAND,REMOTE_EXCUTE_NEW_CALL);
+        dataMsg.addUint8(ID_COMMAND,REMOTE_EXCUTE_NEW_CALL);
         if (appStatue==0) {
-            dataMsg.addInt8(ID_CLOSE_DELAY_SEC, (byte) 0);
+            dataMsg.addUint8(ID_CLOSE_DELAY_SEC, (byte) 0);
         }
-        dataMsg.addInt8(ID_TOTAL_PACKAGES,totalPackages);
-        dataMsg.addInt8(ID_PACKAGE_NUM, (byte) 1);
+        dataMsg.addUint8(ID_TOTAL_PACKAGES,totalPackages);
+        dataMsg.addUint8(ID_PACKAGE_NUM, (byte) 1);
         dataMsg.addString(ID_ASCSTR,pbCall.getAscMsg());
         sendQueue.addFirst(dataMsg);
     }
@@ -608,7 +616,7 @@ public class PebbleCenter extends Service {
                 case SEND_CALL_END:
                 {
                     PebbleDictionary callEnd=new PebbleDictionary();
-                    callEnd.addInt8(ID_COMMAND,REMOTE_EXCUTE_CALL_END);
+                    callEnd.addUint8(ID_COMMAND,REMOTE_EXCUTE_CALL_END);
                     clean_SendQue();
                     sendQueue.addFirst(callEnd);
                     this.post(sendToPebble);
@@ -629,8 +637,10 @@ public class PebbleCenter extends Service {
             PebbleDictionary tmpPD=sendQueue.poll();
             if (tmpPD.getInteger(ID_PACKAGE_NUM).intValue() == tmpPD.getInteger(ID_TOTAL_PACKAGES).intValue()) {
                 PebbleKit.sendDataToPebbleWithTransactionId(_contex, Constants.PEBBLE_UUID, tmpPD, TRANS_ID_END);
+                Constants.log(TAG_NAME,"Send last package.");
             } else {
                 PebbleKit.sendDataToPebbleWithTransactionId(_contex, Constants.PEBBLE_UUID, tmpPD, TRANS_ID_COMMON);
+                Constants.log(TAG_NAME,"Send common package.");
             }
 
         }

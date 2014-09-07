@@ -24,12 +24,12 @@
         <service
             android:name=".services.MessageProcessingService"
             android:enabled="true"
-            android:exported="false" >
+            android:exported="true" >
         </service>
         <service
             android:name=".services.PebbleCenter"
             android:enabled="true"
-            android:exported="false" >
+            android:exported="true" >
         </service>
 
         <activity

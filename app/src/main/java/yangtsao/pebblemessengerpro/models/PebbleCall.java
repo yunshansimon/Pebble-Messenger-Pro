@@ -16,6 +16,19 @@ public class PebbleCall implements Serializable {
     /* store the unicode character's imgs and their positions */
     private String                 _ascmsg;
     private String                 _phonenum;
+    private Long                   _id;
+
+    public Long get_id() {
+        return _id;
+    }
+
+    public void set_id(Long id) {
+        if (id<0) {
+            this._id =(long) 0;
+        }else {
+            this._id = id;
+        }
+    }
 
     public String getAscMsg() {
         return _ascmsg;
