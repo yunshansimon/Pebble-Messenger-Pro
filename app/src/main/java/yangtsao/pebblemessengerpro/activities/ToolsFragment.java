@@ -45,7 +45,7 @@ public class ToolsFragment extends Fragment {
     private static final String MESSAGE_BODY="message";
     private static final String CALL_NAME="name";
     private static final String CALL_NUM="number";
-    private final String LOG_TAG="TestMessage";
+    private static final String LOG_TAG="TestMessage";
 
     private Messenger rMessageProcessHandler;
     private final ServiceConnection connToMessageProcess =new ServiceConnection() {
@@ -151,6 +151,7 @@ public class ToolsFragment extends Fragment {
                         public void onClick(DialogInterface dialog, int id) {
                             // FIRE ZE MISSILES!
                             Intent data=new Intent();
+                            Constants.log(LOG_TAG,etMessage.getText().toString());
                             data.putExtra(MESSAGE_BODY,etMessage.getText().toString());
                             getTargetFragment().onActivityResult(getTargetRequestCode(),0,data);
                             dialog.dismiss();
@@ -218,6 +219,7 @@ public class ToolsFragment extends Fragment {
                 break;
         }
         try {
+            msg.setData(b);
             rMessageProcessHandler.send(msg);
         } catch (RemoteException e) {
             e.printStackTrace();

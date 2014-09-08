@@ -20,7 +20,7 @@ public class FontDbLoadNotifier {
 
     public FontDbLoadNotifier(Context context) {
         mBuilder = new Notification.Builder(context).setSmallIcon(R.drawable.ic_launcher)
-                .setContentTitle("Pebble Messenger")
+                .setContentTitle(context.getString(R.string.app_name))
                 .setContentText(context.getResources().getText(R.string.notif_started_loading)).setAutoCancel(true)
                 .setOngoing(true);
 

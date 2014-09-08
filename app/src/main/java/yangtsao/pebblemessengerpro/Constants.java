@@ -34,7 +34,7 @@ public class Constants {
     public static final String  PREFERENCE_QUIET_HOURS                = "pref_dnd_time_enabled";
     public static final String  PREFERENCE_QUIET_HOURS_BEFORE         = "pref_dnd_time_before";
     public static final String  PREFERENCE_QUIET_HOURS_AFTER          = "pref_dnd_time_after";
-    public static final String  PREFERENCE_MIN_NOTIFICATION_WAIT      = "minNotificationWait";
+    public static final String  PREFERENCE_MIN_NOTIFICATION_WAIT      = "pref_notif_timeout";
     //----------------------------------------
 
     //two sets parameters of message characters

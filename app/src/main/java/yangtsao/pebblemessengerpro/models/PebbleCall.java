@@ -10,8 +10,7 @@ import java.util.Deque;
 public class PebbleCall implements Serializable {
 
 
-    private static final long serialVersionUID = 4348033387280464364L;
-
+    private static final long serialVersionUID = 3353633765259495217L;
     private Deque<CharacterMatrix> _characterQueue;
     /* store the unicode character's imgs and their positions */
     private String                 _ascmsg;

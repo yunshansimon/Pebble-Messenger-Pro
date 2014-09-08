@@ -152,7 +152,8 @@ public class MessageProcessingService extends Service {
                             Constants.log(TAG_NAME, "Time is before or after the quiet hours time. Returning.");
                             addNewMessage(msg.getData(), MessageDbHandler.NEW_ICON);
                         } else {
-                            Bundle b=msg.getData();
+
+                            Bundle b= msg.getData();
                             b.putLong(MessageDbHandler.COL_MESSAGE_ID,addNewMessage(msg.getData(), MessageDbHandler.OLD_ICON));
                             Message innerMsg=processHandler.obtainMessage(INNER_MESSAGE_PROCEED);
                             innerMsg.setData(b);
@@ -160,6 +161,7 @@ public class MessageProcessingService extends Service {
                             processHandler.sendMessage(innerMsg);
                         }
                     }else{
+
                         Bundle b=msg.getData();
                         b.putLong(MessageDbHandler.COL_MESSAGE_ID,addNewMessage(msg.getData(), MessageDbHandler.OLD_ICON));
                         Message innerMsg=processHandler.obtainMessage(INNER_MESSAGE_PROCEED);
@@ -329,7 +331,15 @@ public class MessageProcessingService extends Service {
                 Constants.log(TAG_NAME,"Font data base is not ready, processing stop!");
                 originalMessage= getString(R.string.error_fontbase_notready);
             }else {
-                originalMessage = b.getString(MessageDbHandler.COL_MESSAGE_CONTENT).substring(0, 179).replaceAll("\\n+", "\n");
+
+                originalMessage = b.getString(MessageDbHandler.COL_MESSAGE_CONTENT);
+                Constants.log(TAG_NAME,"original:" + originalMessage + "\n"
+                    + b.getString(MessageDbHandler.COL_MESSAGE_APP) + "\n"
+                    + String.valueOf(b.getLong(MessageDbHandler.COL_MESSAGE_ID)));
+                if (originalMessage.length()>=180){
+                    originalMessage=originalMessage.substring(0,179);
+                }
+                originalMessage=originalMessage.replaceAll("\\s+\\n","\n");
             }
             PebbleMessage message = new PebbleMessage();
             message.set_id(b.getLong(MessageDbHandler.COL_MESSAGE_ID));

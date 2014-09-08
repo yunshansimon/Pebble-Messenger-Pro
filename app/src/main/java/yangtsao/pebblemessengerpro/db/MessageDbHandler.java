@@ -19,7 +19,7 @@ import yangtsao.pebblemessengerpro.Constants;
  */
 public class MessageDbHandler extends SQLiteOpenHelper {
     private static final String DBNAME   ="messagedb.sqlite";
-    private static final int VERSION     =1;
+    private static final int VERSION     =2;
     //message table
     public static final String NEW_ICON="!";
     public static final String OLD_ICON=".";
@@ -56,14 +56,13 @@ public class MessageDbHandler extends SQLiteOpenHelper {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Constants.log("Database", "Starting messagedb creation");
                 String CREATE_FONT_TABLE = "CREATE TABLE " + TABLE_MESSAGE_NAME + "(" + COL_MESSAGE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
-                        + COL_MESSAGE_TIME + " TEXT," + COL_MESSAGE_APP + " TEXT," + COL_MESSAGE_CONTENT + " TEXT "  + COL_MESSAGE_NEW  +  " TEXT)";
-                Constants.log(TAG_NAME, "Build new msg table:" + CREATE_FONT_TABLE);
+                        + COL_MESSAGE_TIME + " TEXT," + COL_MESSAGE_APP + " TEXT," + COL_MESSAGE_CONTENT + " TEXT, "  + COL_MESSAGE_NEW  +  " TEXT)";
+
                 dbThread.execSQL(CREATE_FONT_TABLE);
                 CREATE_FONT_TABLE ="CREATE TABLE " + TABLE_CALL_NAME + "(" + COL_CALL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
-                        + COL_CALL_TIME + " TEXT," + COL_CALL_NUMBER + " TEXT," + COL_CALL_NAME + " TEXT "  + COL_CALL_NEW  + " TEXT)";
-                Constants.log(TAG_NAME, "Build new call table:" + CREATE_FONT_TABLE);
+                        + COL_CALL_TIME + " TEXT," + COL_CALL_NUMBER + " TEXT," + COL_CALL_NAME + " TEXT, "  + COL_CALL_NEW  + " TEXT)";
+
                 dbThread.execSQL(CREATE_FONT_TABLE);
             }
 
@@ -97,9 +96,11 @@ public class MessageDbHandler extends SQLiteOpenHelper {
         String countQuery = "SELECT  * FROM " + tableName;
         Cursor cursor = _db.rawQuery(countQuery, null);
         if (cursor==null){
+            Constants.log(TAG_NAME, tableName + " table is NULL.");
             return ;
         }
         int cnt = cursor.getCount();
+
         if (cnt>maxRecord) {
             cursor.moveToFirst();
             int did=cursor.getInt(0);
