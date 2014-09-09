@@ -76,7 +76,7 @@ public class MessageProcessingService extends Service {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             rPebbleCenter=new Messenger(iBinder);
-            Constants.log(TAG_NAME,"Connect to PebbleCenter");
+
         }
 
         @Override
@@ -89,7 +89,7 @@ public class MessageProcessingService extends Service {
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
         //throw new UnsupportedOperationException("Not yet implemented");
-        Constants.log(TAG_NAME,"Bind to others!");
+
         return mMessenger.getBinder();
     }
     @Override
@@ -117,7 +117,7 @@ public class MessageProcessingService extends Service {
         mdb.open();
         bindService(new Intent(this, PebbleCenter.class), connToPebbleCenter,
                 Context.BIND_AUTO_CREATE);
-        Constants.log(TAG_NAME,"The service is Ok!");
+
     }
 
     @Override
@@ -141,9 +141,9 @@ public class MessageProcessingService extends Service {
             Constants.log(TAG_NAME,"New msg arrived. what:" + String.valueOf(msg.what));
             switch (msg.what){
                 case MSG_NEW_MESSAGE:
-                    Constants.log(TAG_NAME,"New msg case NEW_MESSAGE, quite_hours:" + String.valueOf(quiet_hours));
+
                     if (quiet_hours) {
-                        Constants.log(TAG_NAME,"Get new message!");
+
                         Calendar c = Calendar.getInstance();
                         Calendar now = new GregorianCalendar(0, 0, 0, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE));
                         Constants.log(TAG_NAME, "Checking quiet hours. Now: " + now.toString() + " vs "
@@ -166,9 +166,9 @@ public class MessageProcessingService extends Service {
                         b.putLong(MessageDbHandler.COL_MESSAGE_ID,addNewMessage(msg.getData(), MessageDbHandler.OLD_ICON));
                         Message innerMsg=processHandler.obtainMessage(INNER_MESSAGE_PROCEED);
                         innerMsg.setData(b);
-                        Constants.log(TAG_NAME,"id:" + String.valueOf(b.getLong(MessageDbHandler.COL_MESSAGE_ID)));
+
                         processHandler.sendMessage(innerMsg);
-                        Constants.log(TAG_NAME,"The msg send to inner handler.");
+
                     }
                     break;
                 case MSG_NEW_CALL:
@@ -299,10 +299,11 @@ public class MessageProcessingService extends Service {
 
         @Override
         public void handleMessage(Message msg) {
-            Constants.log(TAG_NAME,"InnerHandler get msg. what:" + String.valueOf(msg.what));
+
             switch (msg.what){
                 case INNER_MESSAGE_PROCEED:
                 {   PebbleMessage pMessage=processMessage(msg.getData());
+
                     Message msgReply= messageHandler.obtainMessage(MSG_MESSAGE_READY);
                     Bundle tmpB=new Bundle();
                     tmpB.putSerializable(PROCEED_MSG,pMessage);
@@ -339,12 +340,13 @@ public class MessageProcessingService extends Service {
                 if (originalMessage.length()>=180){
                     originalMessage=originalMessage.substring(0,179);
                 }
-                originalMessage=originalMessage.replaceAll("\\s+\\n","\n");
             }
+
             PebbleMessage message = new PebbleMessage();
             message.set_id(b.getLong(MessageDbHandler.COL_MESSAGE_ID));
             // Clear the characterQueue, just in case
             Deque<CharacterMatrix> characterQueue = new ArrayDeque<CharacterMatrix>();
+            StringBuilder strBd=new StringBuilder();
             while(originalMessage.length()>0)
             {
                 int row = 1;
@@ -353,19 +355,19 @@ public class MessageProcessingService extends Service {
                 if (codepoint == 0) {
                     break;
                 }
-                Constants.log("codepoint", "char='" + (char) codepoint + "' code=" + String.valueOf(codepoint));
+      //          Constants.log("codepoint", "char='" + (char) codepoint + "' code=" + String.valueOf(codepoint));
                 if (codepoint <= 127) {
                     if (codepoint == 10) {
                         row++;
                         col = 0;
-                        message.AddCharToAscMsg(originalMessage.charAt(0));
+                        strBd.append(originalMessage.charAt(0));
                     } else {
                         if (col < fChars) {
                             col++;
-                            message.AddCharToAscMsg(originalMessage.charAt(0));
+                            strBd.append(originalMessage.charAt(0));
                         } else {
-                            message.AddCharToAscMsg('\n');
-                            message.AddCharToAscMsg(originalMessage.charAt(0));
+                            strBd.append('\n');
+                            strBd.append(originalMessage.charAt(0));
                             row++;
                             col = 1;
                         }
@@ -378,7 +380,7 @@ public class MessageProcessingService extends Service {
                     if (codepointStr.length() < 4) {
                         codepointStr = ("0000" + codepointStr).substring(codepointStr.length());
                     }
-                    Constants.log(TAG_NAME, "codepoint=" + String.valueOf(codepoint) + " codeStr=" + codepointStr);
+          //          Constants.log(TAG_NAME, "codepoint=" + String.valueOf(codepoint) + " codeStr=" + codepointStr);
                     Font font = fdb.getFont(codepointStr);
                     if (font == null) {
                         Constants.log(TAG_NAME, "font is null! codepoint=[" + String.valueOf(codepoint) + "] char=["
@@ -395,11 +397,12 @@ public class MessageProcessingService extends Service {
                     if (c.getWidthBytes() == 2) {
                         if (col < (fChars-1)) {
                             c.setPos(row, col + 1);
-                            message.AddStringToAscMsg("  ");
+                            strBd.append ("  ");
                             col += 2;
                         } else {
-                            message.AddCharToAscMsg('\n');
-                            message.AddStringToAscMsg("  ");
+                            strBd.append('\n');
+                            strBd.append ("  ");
+
                             row++;
                             col = 0;
                             c.setPos(row, col + 1);
@@ -409,11 +412,11 @@ public class MessageProcessingService extends Service {
                     } else {
                         if (col < fChars) {
                             c.setPos(row, col + 1);
-                            message.AddCharToAscMsg(' ');
+                            strBd.append(' ');
                             col++;
                         } else {
-                            message.AddCharToAscMsg('\n');
-                            message.AddCharToAscMsg(' ');
+                            strBd.append('\n');
+                            strBd.append(' ');
                             row++;
                             col = 0;
                             c.setPos(row, col + 1);
@@ -427,9 +430,9 @@ public class MessageProcessingService extends Service {
                 }
                 originalMessage = originalMessage.substring(1);
             }
-
+            message.setAscMsg(strBd.toString());
             message.setCharacterQueue(characterQueue);
-            Constants.log(TAG_NAME,"Handled the message!");
+
             return message;
         }
 
@@ -452,33 +455,34 @@ public class MessageProcessingService extends Service {
             int row = 1;
             int col = 0;
 
+            StringBuilder strBd=new StringBuilder();
             while (originalMessage.length() > 0) {
 
                 int codepoint = originalMessage.codePointAt(0);
                 if (codepoint == 0) {
                     break;
                 }
-                Constants.log("codepoint", "char='" + (char) codepoint + "' code=" + String.valueOf(codepoint));
+    //            Constants.log("codepoint", "char='" + (char) codepoint + "' code=" + String.valueOf(codepoint));
                 if (codepoint <= 127) {
                     if (codepoint == 10) {
                         row++;
                         col = 0;
-                        message.AddCharToAscMsg(originalMessage.charAt(0));
+                        strBd.append(originalMessage.charAt(0));
                     } else {
                         if (col < 8) {
                             if (col == 7) {
                                 if (message.getAscMsg().matches("\\w\\z") && originalMessage.matches("\\A\\w")) {
-                                    message.AddStringToAscMsg("-\n");
+                                    strBd.append("-\n");
                                     row++;
                                     col = 0;
                                 }
                             }
 
                             col++;
-                            message.AddCharToAscMsg(originalMessage.charAt(0));
+                            strBd.append(originalMessage.charAt(0));
                         } else {
-                            message.AddCharToAscMsg('\n');
-                            message.AddCharToAscMsg(originalMessage.charAt(0));
+                            strBd.append('\n');
+                            strBd.append(originalMessage.charAt(0));
                             row++;
                             col = 1;
                         }
@@ -491,7 +495,7 @@ public class MessageProcessingService extends Service {
                     if (codepointStr.length() < 4) {
                         codepointStr = ("0000" + codepointStr).substring(codepointStr.length());
                     }
-                    Constants.log("codepoint", "codepoint=" + String.valueOf(codepoint) + " codeStr=" + codepointStr);
+    //                Constants.log("codepoint", "codepoint=" + String.valueOf(codepoint) + " codeStr=" + codepointStr);
                     Font font = fdb.getFont(codepointStr);
                     if (font == null) {
                         Constants.log(TAG_NAME, "font is null! codepoint=[" + String.valueOf(codepoint) + "] char=["
@@ -507,11 +511,11 @@ public class MessageProcessingService extends Service {
                     if (c.getWidthBytes() == 2) {
                         if (col < 7) {
                             c.setPos(row, col + 1);
-                            message.AddStringToAscMsg("  ");
+                            strBd.append ("  ");
                             col += 2;
                         } else {
-                            message.AddCharToAscMsg('\n');
-                            message.AddStringToAscMsg("  ");
+                            strBd.append('\n');
+                            strBd.append ("  ");
                             row++;
                             col = 0;
                             c.setPos(row, col + 1);
@@ -521,11 +525,11 @@ public class MessageProcessingService extends Service {
                     } else {
                         if (col < 8) {
                             c.setPos(row, col + 1);
-                            message.AddCharToAscMsg(' ');
+                            strBd.append(' ');
                             col++;
                         } else {
-                            message.AddCharToAscMsg('\n');
-                            message.AddCharToAscMsg(' ');
+                            strBd.append('\n');
+                            strBd.append(' ');
                             row++;
                             col = 0;
                             c.setPos(row, col + 1);
@@ -540,7 +544,7 @@ public class MessageProcessingService extends Service {
 
                 if (row == 3 && (col > 4 || originalMessage.charAt(0) == '\n')) {
                     Constants.log("codepoint", "too many chars!the end char='" + (char) codepoint + "'");
-                    message.AddStringToAscMsg("...");
+                    strBd.append("...");
 
                     break;
                 }
@@ -548,7 +552,7 @@ public class MessageProcessingService extends Service {
             }
 
             message.setCharacterQueue(characterQueue);
-
+            message.setAscMsg(strBd.toString());
             return message;
         }
 
@@ -563,7 +567,6 @@ public class MessageProcessingService extends Service {
         @Override
         public void run() {
             Looper.prepare();
-            Constants.log(TAG_NAME,"Inner handler is running.");
             processHandler=new InnerThreadHandler(Looper.myLooper());
             Looper.loop();
         }

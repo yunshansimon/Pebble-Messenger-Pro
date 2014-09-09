@@ -10,7 +10,7 @@ import java.util.Deque;
 public class PebbleMessage implements Serializable {
 
 
-    private static final long serialVersionUID = 6390628963811942937L;
+    private static final long serialVersionUID = -610588105886703613L;
     private Deque<CharacterMatrix> _characterQueue;
     /* store the unicode character's imgs and their positions */
     private String                 _ascmsg;
@@ -41,14 +41,6 @@ public class PebbleMessage implements Serializable {
         this._ascmsg = msg;
     }
 
-    public void AddCharToAscMsg(char c) {
-        this._ascmsg += String.valueOf(c);
-
-    }
-
-    public void AddStringToAscMsg(String s) {
-        this._ascmsg += s;
-    }
 
     public PebbleMessage(Deque<CharacterMatrix> characterQueue) {
         this._characterQueue = characterQueue;
@@ -66,7 +58,4 @@ public class PebbleMessage implements Serializable {
         this._characterQueue = characterQueue;
     }
 
-    public boolean hasMore() {
-        return !(_characterQueue.isEmpty() && (_ascmsg.length() == 0));
-    }
 }

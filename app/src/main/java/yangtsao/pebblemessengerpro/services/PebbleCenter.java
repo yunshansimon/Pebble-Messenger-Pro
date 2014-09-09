@@ -264,6 +264,7 @@ public class PebbleCenter extends Service {
                 Constants.log(TAG_NAME,"Get a receiveAck:" + String.valueOf(transactionId));
                 switch (transactionId){
                     case TRANS_ID_COMMON:
+                        Constants.log(TAG_NAME,"Send continue...");
                         sendMsgThreadHandler.sendEmptyMessage(SEND_CONTINUE);
                         break;
                     case TRANS_ID_END:
@@ -586,8 +587,10 @@ public class PebbleCenter extends Service {
 
         @Override
         public void handleMessage(Message msg) {
+            Constants.log(TAG_NAME,"get send command: what:" + String.valueOf(msg.what));
             if(!isPebbleEnable){
                 clean_SendQue();
+                Constants.log(TAG_NAME,"Pebble is disable, clean!");
                 return;
             }
             pebbleBusy=true;
@@ -611,9 +614,7 @@ public class PebbleCenter extends Service {
                         Constants.log(TAG_NAME,"sendQueue is empty! Can not send");
                         return;
                     }
-                    if (sendQueue.peekFirst().getUnsignedInteger(ID_PACKAGE_NUM).intValue()==1){
-                    return;
-                 }
+
                 }
                     this.post(sendToPebble);
                     break;
@@ -655,14 +656,15 @@ public class PebbleCenter extends Service {
     Runnable sendToPebble=new Runnable() {
         @Override
         public void run() {
+            Constants.log(TAG_NAME,"Data send to pebble, sendQueue length:" + String.valueOf(sendQueue.size()));
             PebbleDictionary tmpPD=sendQueue.poll();
-            Constants.log(TAG_NAME,"Data send to pebble, Length:" + String.valueOf( tmpPD.size()));
+
             if (tmpPD.getUnsignedInteger(ID_PACKAGE_NUM).intValue() == tmpPD.getUnsignedInteger(ID_TOTAL_PACKAGES).intValue()) {
                 PebbleKit.sendDataToPebbleWithTransactionId(_contex, Constants.PEBBLE_UUID, tmpPD, TRANS_ID_END);
-                Constants.log(TAG_NAME,"Send last package.");
+                Constants.log(TAG_NAME,"Send last package.sendQueue length:" + String.valueOf(sendQueue.size()));
             } else {
                 PebbleKit.sendDataToPebbleWithTransactionId(_contex, Constants.PEBBLE_UUID, tmpPD, TRANS_ID_COMMON);
-                Constants.log(TAG_NAME,"Send common package.");
+                Constants.log(TAG_NAME,"Send common package. sendQueue length:" + String.valueOf(sendQueue.size()));
             }
 
         }

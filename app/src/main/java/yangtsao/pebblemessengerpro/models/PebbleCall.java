@@ -10,21 +10,21 @@ import java.util.Deque;
 public class PebbleCall implements Serializable {
 
 
-    private static final long serialVersionUID = 3353633765259495217L;
+    private static final long serialVersionUID = -4758580230492930517L;
     private Deque<CharacterMatrix> _characterQueue;
     /* store the unicode character's imgs and their positions */
-    private String                 _ascmsg;
-    private String                 _phonenum;
-    private Long                   _id;
+    private String _ascmsg;
+    private String _phonenum;
+    private Long _id;
 
     public Long get_id() {
         return _id;
     }
 
     public void set_id(Long id) {
-        if (id<0) {
-            this._id =(long) 0;
-        }else {
+        if (id < 0) {
+            this._id = (long) 0;
+        } else {
             this._id = id;
         }
     }
@@ -45,14 +45,6 @@ public class PebbleCall implements Serializable {
         this._phonenum = num;
     }
 
-    public void AddCharToAscMsg(char c) {
-        this._ascmsg += String.valueOf(c);
-
-    }
-
-    public void AddStringToAscMsg(String s) {
-        this._ascmsg += s;
-    }
 
     public PebbleCall(Deque<CharacterMatrix> characterQueue) {
         this._characterQueue = characterQueue;
@@ -70,8 +62,5 @@ public class PebbleCall implements Serializable {
         this._characterQueue = characterQueue;
     }
 
-    public boolean hasMore() {
-       return !(_characterQueue.isEmpty() && (_ascmsg.length() == 0));
-    }
-}
 
+}
