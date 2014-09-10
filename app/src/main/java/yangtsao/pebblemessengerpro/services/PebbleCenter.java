@@ -506,9 +506,9 @@ public class PebbleCenter extends Service {
                 dataMsg.addUint8(ID_TOTAL_PACKAGES,totalPackages);
                 dataMsg.addUint8(ID_PACKAGE_NUM,(byte) pg);
                 dataMsg.addString(ID_ASCSTR,dealPM.getAscMsg().substring((pg-1)*MAX_CHARS_PACKAGE_CONTAIN,
-                        (pg*MAX_CHARS_PACKAGE_CONTAIN> dealPM.getAscMsg().length()? dealPM.getAscMsg().length()-1 : pg*MAX_CHARS_PACKAGE_CONTAIN-1)
+                        (pg*MAX_CHARS_PACKAGE_CONTAIN> dealPM.getAscMsg().length()? (dealPM.getAscMsg().length()) : (pg*MAX_CHARS_PACKAGE_CONTAIN))
                 ));
-                Constants.log(TAG_NAME,"Add Queue a strmsg:" + dataMsg.getString(ID_ASCSTR));
+                Constants.log(TAG_NAME,"Add Queue a strmsg:[" + dataMsg.getString(ID_ASCSTR) +"]");
                 sendQueue.add(dataMsg);
             }
             for (int pg=strPackages+1;pg<=totalPackages;pg++){
@@ -518,13 +518,16 @@ public class PebbleCenter extends Service {
                 dataMsg.addUint8(ID_PAGE_NUM,(byte)page);
                 dataMsg.addUint8(ID_TOTAL_PACKAGES,totalPackages);
                 dataMsg.addUint8(ID_PACKAGE_NUM,(byte) pg);
+                Constants.log(TAG_NAME,"There are " + String.valueOf(dealPM.getCharacterQueue().size()) + "unicode in queue");
                 CharacterMatrix cm=dealPM.getCharacterQueue().pollFirst();
                 int size = cm.getByteList().size();
                 byte[] b2 = new byte[size];
                 cm.getbyteArray(b2,size);
                 dataMsg.addUint8(ID_UNICHR_WIDTH,(byte) cm.getWidthBytes());
                 dataMsg.addBytes(ID_UNICHR_POS,cm.getPos());
+                Constants.log(TAG_NAME,"row:" + String.valueOf(cm.getPos()[0]) + " col:" + String.valueOf(cm.getPos()[1]));
                 dataMsg.addBytes(ID_UNICHR_BYTES, b2);
+                Constants.log(TAG_NAME,"b2 length:" + String.valueOf(b2.length));
                 Constants.log(TAG_NAME,"Add Queue a unimsg:" + dataMsg.getUnsignedInteger(ID_PACKAGE_NUM).toString());
                 sendQueue.add(dataMsg);
             }

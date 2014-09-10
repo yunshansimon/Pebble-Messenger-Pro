@@ -347,15 +347,16 @@ public class MessageProcessingService extends Service {
             // Clear the characterQueue, just in case
             Deque<CharacterMatrix> characterQueue = new ArrayDeque<CharacterMatrix>();
             StringBuilder strBd=new StringBuilder();
+            int row = 1;
+            int col = 0;
             while(originalMessage.length()>0)
             {
-                int row = 1;
-                int col = 0;
+
                 int codepoint = originalMessage.codePointAt(0);
                 if (codepoint == 0) {
                     break;
                 }
-      //          Constants.log("codepoint", "char='" + (char) codepoint + "' code=" + String.valueOf(codepoint));
+//                Constants.log("codepoint", "char='" + (char) codepoint + "' code=" + String.valueOf(codepoint));
                 if (codepoint <= 127) {
                     if (codepoint == 10) {
                         row++;
@@ -380,7 +381,7 @@ public class MessageProcessingService extends Service {
                     if (codepointStr.length() < 4) {
                         codepointStr = ("0000" + codepointStr).substring(codepointStr.length());
                     }
-          //          Constants.log(TAG_NAME, "codepoint=" + String.valueOf(codepoint) + " codeStr=" + codepointStr);
+//                    Constants.log(TAG_NAME, "codepoint=" + String.valueOf(codepoint) + " codeStr=" + codepointStr);
                     Font font = fdb.getFont(codepointStr);
                     if (font == null) {
                         Constants.log(TAG_NAME, "font is null! codepoint=[" + String.valueOf(codepoint) + "] char=["
@@ -426,11 +427,13 @@ public class MessageProcessingService extends Service {
                     }
 
                     characterQueue.add(c);
+                    Constants.log(TAG_NAME,"row:" + String.valueOf(c.getPos()[0]) + " col:" + String.valueOf(c.getPos()[1]));
 
                 }
                 originalMessage = originalMessage.substring(1);
             }
             message.setAscMsg(strBd.toString());
+ //           Constants.log(TAG_NAME,"set msg:[" + message.getAscMsg() + "]");
             message.setCharacterQueue(characterQueue);
 
             return message;
@@ -462,7 +465,7 @@ public class MessageProcessingService extends Service {
                 if (codepoint == 0) {
                     break;
                 }
-    //            Constants.log("codepoint", "char='" + (char) codepoint + "' code=" + String.valueOf(codepoint));
+                Constants.log("codepoint", "char='" + (char) codepoint + "' code=" + String.valueOf(codepoint));
                 if (codepoint <= 127) {
                     if (codepoint == 10) {
                         row++;
@@ -495,7 +498,7 @@ public class MessageProcessingService extends Service {
                     if (codepointStr.length() < 4) {
                         codepointStr = ("0000" + codepointStr).substring(codepointStr.length());
                     }
-    //                Constants.log("codepoint", "codepoint=" + String.valueOf(codepoint) + " codeStr=" + codepointStr);
+                    Constants.log("codepoint", "codepoint=" + String.valueOf(codepoint) + " codeStr=" + codepointStr);
                     Font font = fdb.getFont(codepointStr);
                     if (font == null) {
                         Constants.log(TAG_NAME, "font is null! codepoint=[" + String.valueOf(codepoint) + "] char=["
