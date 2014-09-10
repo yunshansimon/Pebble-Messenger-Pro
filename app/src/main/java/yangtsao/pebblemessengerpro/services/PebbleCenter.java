@@ -179,7 +179,8 @@ public class PebbleCenter extends Service {
             @Override
             public void receiveData(Context context, int transactionId, PebbleDictionary data) {
                 PebbleKit.sendAckToPebble(_contex, transactionId);
-                switch (transactionId){
+                Constants.log(TAG_NAME,"Received data form pebble");
+                switch (data.getUnsignedInteger(ID_COMMAND).intValue()){
                     case REQUEST_TRANSID_CALL_TABLE: {
                         Message msg = Message.obtain();
                         msg.what = MessageProcessingService.MSG_GET_CALL_TABLE;
@@ -249,6 +250,7 @@ public class PebbleCenter extends Service {
                         doSendSMSTo(data.getString(ID_EXTRA_DATA),sms2);
                         break;
                     case REQUEST_TRANSID_CLOSE_APP:
+                        Constants.log(TAG_NAME,"Get close app command.");
                         sendMsgThreadHandler.sendEmptyMessage(SEND_CLOSE_APP);
                         break;
                     case REQUEST_TRANSID_NEXTPAGE:
