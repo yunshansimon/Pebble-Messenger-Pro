@@ -464,6 +464,7 @@ public class PebbleCenter extends Service {
             StringBuilder tmpSB=new StringBuilder();
             for (int line=(page-1)*fLines;line<(page*fLines> splitString.length? splitString.length:page*fLines);line++){
                 tmpSB.append(splitString[(page-1)*fLines+line]);
+                tmpSB.append('\n');
             }
             itemPm.setAscMsg(tmpSB.toString());
             Deque<CharacterMatrix> itemDqCM=new ArrayDeque<CharacterMatrix>();
@@ -487,6 +488,7 @@ public class PebbleCenter extends Service {
 
             dataMsg.addUint8(ID_CLOSE_DELAY_SEC, (byte) (timeOut / 1000));
             dataMsg.addUint8(ID_CHAR_SCALE,char_scale);
+        Constants.log(TAG_NAME,"add char_scale:" + String.valueOf(char_scale));
             dataMsg.addUint32(ID_INFO_ID, listPM.get(0).get_id().intValue());
             dataMsg.addUint8(ID_TOTAL_PACKAGES,(byte) 2);
             dataMsg.addUint8(ID_PACKAGE_NUM,(byte) 1);
