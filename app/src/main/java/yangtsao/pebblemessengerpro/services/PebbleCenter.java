@@ -81,7 +81,7 @@ public class PebbleCenter extends Service {
     private boolean pebbleBusy=false;
     private Time busyBegin;
     private final static long MAX_WAITING_MILLIS=30000;
-    private final static int MAX_CHARS_PACKAGE_CONTAIN=80;
+    private final static int MAX_CHARS_PACKAGE_CONTAIN=60;
     private int appStatue=0;
     //pebble request. Use transaction id to receive command, and extra data for the addition information.
     private static final int REQUEST_TRANSID_MESSAGE=1;
@@ -510,7 +510,7 @@ public class PebbleCenter extends Service {
                 dataMsg.addString(ID_ASCSTR,dealPM.getAscMsg().substring((pg-1)*MAX_CHARS_PACKAGE_CONTAIN,
                         (pg*MAX_CHARS_PACKAGE_CONTAIN> dealPM.getAscMsg().length()? (dealPM.getAscMsg().length()) : (pg*MAX_CHARS_PACKAGE_CONTAIN))
                 ));
-                Constants.log(TAG_NAME,"Add Queue a strmsg:[" + dataMsg.getString(ID_ASCSTR) +"]");
+                Constants.log(TAG_NAME,"Add Queue a strmsg:[" + dataMsg.getString(ID_ASCSTR) +"]" + " packagenum=" + String.valueOf(dataMsg.getUnsignedInteger(ID_PACKAGE_NUM)));
                 sendQueue.add(dataMsg);
             }
             for (int pg=strPackages+1;pg<=totalPackages;pg++){
