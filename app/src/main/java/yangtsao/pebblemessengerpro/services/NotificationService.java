@@ -15,6 +15,7 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.PowerManager;
 import android.os.RemoteException;
+import android.preference.Preference;
 import android.provider.ContactsContract;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.PhoneStateListener;
@@ -38,6 +39,8 @@ import android.widget.TextView;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.prefs.PreferenceChangeEvent;
+import java.util.prefs.PreferenceChangeListener;
 
 import static android.content.Context.*;
 
@@ -381,4 +384,5 @@ public class NotificationService extends AccessibilityService {
     public int onStartCommand(Intent intent, int flags, int startId) {
         return START_STICKY;
     }
+
 }

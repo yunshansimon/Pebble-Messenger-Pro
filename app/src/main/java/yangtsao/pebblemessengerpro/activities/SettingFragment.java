@@ -5,7 +5,13 @@ package yangtsao.pebblemessengerpro.activities;
 import android.app.Activity;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.preference.Preference;
 import android.preference.PreferenceFragment;
+
+import java.util.prefs.PreferenceChangeEvent;
+import java.util.prefs.PreferenceChangeListener;
+
+import yangtsao.pebblemessengerpro.Constants;
 import yangtsao.pebblemessengerpro.R;
 
 /**
@@ -26,4 +32,6 @@ private static final int positionIndex=1;
         super.onAttach(activity);
         ((NavigationActivity) activity).onSectionAttached(positionIndex);
     }
+
+
 }

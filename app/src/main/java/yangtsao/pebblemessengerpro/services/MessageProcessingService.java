@@ -14,6 +14,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.text.format.Time;
 
@@ -24,6 +25,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Deque;
 import java.util.GregorianCalendar;
+import java.util.prefs.PreferenceChangeEvent;
+import java.util.prefs.PreferenceChangeListener;
 
 import yangtsao.pebblemessengerpro.Constants;
 import yangtsao.pebblemessengerpro.R;
@@ -34,7 +37,7 @@ import yangtsao.pebblemessengerpro.models.Font;
 import yangtsao.pebblemessengerpro.models.PebbleCall;
 import yangtsao.pebblemessengerpro.models.PebbleMessage;
 
-public class MessageProcessingService extends Service {
+public class MessageProcessingService extends Service  {
     private static FontDbHandler fdb;
     private static MessageDbHandler mdb;
     private static Context _context;
@@ -606,4 +609,6 @@ public class MessageProcessingService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         return START_STICKY;
     }
+
+
 }

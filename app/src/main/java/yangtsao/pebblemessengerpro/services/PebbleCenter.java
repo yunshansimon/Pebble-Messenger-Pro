@@ -15,6 +15,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
@@ -33,6 +34,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.prefs.PreferenceChangeEvent;
+import java.util.prefs.PreferenceChangeListener;
 
 import yangtsao.pebblemessengerpro.Constants;
 import yangtsao.pebblemessengerpro.R;
@@ -94,6 +97,8 @@ public class PebbleCenter extends Service {
     private static final int REQUEST_TRANSID_HANGOFF_SMS1=8;
     private static final int REQUEST_TRANSID_HANGOFF_SMS2=9;
     private static final int REQUEST_TRANSID_NEXTPAGE=10;
+    private static final int REQUEST_TRANSID_READ_NOTIFY=11;
+    private static final int REQUEST_TRANSID_IM_FREE=12;
     private static final int ID_EXTRA_DATA=2;
     private static final int REQUEST_EXTRA_SPEAKER_ON=1;
     private static final int REQUEST_EXTRA_SPEAKER_OFF=2;
@@ -229,7 +234,7 @@ public class PebbleCenter extends Service {
                         }
                         break;
                     case REQUEST_TRANSID_PICKUP_PHONE:
-                        switch (data.getInteger(ID_EXTRA_DATA).intValue()){
+                        switch (data.getUnsignedInteger(ID_EXTRA_DATA).intValue()){
                             case REQUEST_EXTRA_SPEAKER_ON:
                                 answerCall(true);
                                 break;
@@ -251,10 +256,19 @@ public class PebbleCenter extends Service {
                         break;
                     case REQUEST_TRANSID_CLOSE_APP:
                         Constants.log(TAG_NAME,"Get close app command.");
-                        sendMsgThreadHandler.sendEmptyMessage(SEND_CLOSE_APP);
+                       // sendMsgThreadHandler.sendEmptyMessage(SEND_CLOSE_APP);
+                        pebbleBusy=false;
+                        appStatue=0;
+                        clean_SendQue();
                         break;
                     case REQUEST_TRANSID_NEXTPAGE:
                         sendMsgThreadHandler.sendEmptyMessage(SEND_NEXT_PAGE);
+                        break;
+                    case REQUEST_TRANSID_READ_NOTIFY:
+                        break;
+                    case REQUEST_TRANSID_IM_FREE:
+                        pebbleBusy=false;
+                        clean_SendQue();
                         break;
                 }
             }
@@ -286,6 +300,10 @@ public class PebbleCenter extends Service {
                             break;
                         case TRANS_ID_END:
                             break;
+                        default:
+                            appStatue=0;
+                            pebbleBusy=false;
+                            clean_SendQue();
                     }
                 }else{
                     clean_SendQue();
@@ -305,6 +323,9 @@ public class PebbleCenter extends Service {
             @Override
             public void onReceive(Context context, Intent intent) {
                 isPebbleEnable=false;
+                appStatue=0;
+                pebbleBusy=false;
+                clean_SendQue();
             }
         });
     }
@@ -444,7 +465,7 @@ public class PebbleCenter extends Service {
             dataMsg.addUint8(ID_TOTAL_PACKAGES,totalPackges);
             dataMsg.addUint8(ID_PACKAGE_NUM,(byte) pg);
             dataMsg.addString(ID_ASCSTR,strMsg.substring((pg-1)*MAX_CHARS_PACKAGE_CONTAIN,
-                    (pg*MAX_CHARS_PACKAGE_CONTAIN> strMsg.length()? strMsg.length()-1 : pg*MAX_CHARS_PACKAGE_CONTAIN-1)
+                    (pg*MAX_CHARS_PACKAGE_CONTAIN> strMsg.length()? strMsg.length() : pg*MAX_CHARS_PACKAGE_CONTAIN)
             ));
             sendQueue.add(dataMsg);
         }
@@ -463,14 +484,14 @@ public class PebbleCenter extends Service {
             itemPm.set_id(tmpPM.get_id());
             StringBuilder tmpSB=new StringBuilder();
             for (int line=(page-1)*fLines;line<(page*fLines> splitString.length? splitString.length:page*fLines);line++){
-                tmpSB.append(splitString[(page-1)*fLines+line]);
+                tmpSB.append(splitString[line]);
                 tmpSB.append('\n');
             }
             itemPm.setAscMsg(tmpSB.toString());
             Deque<CharacterMatrix> itemDqCM=new ArrayDeque<CharacterMatrix>();
             while(!tmpPM.getCharacterQueue().isEmpty()){
                 CharacterMatrix tmpCM=tmpPM.getCharacterQueue().pollFirst();
-                if(tmpCM.getPos()[0]>=(page-1)*fLines && tmpCM.getPos()[0]<page*fLines){
+                if(tmpCM.getPos()[0]>=(page-1)*fLines && tmpCM.getPos()[0]<=page*fLines){
                     itemDqCM.add(tmpCM);
                 }else{
                     break;
@@ -631,9 +652,9 @@ public class PebbleCenter extends Service {
                         Constants.log(TAG_NAME,"sendQueue is empty! Can not send");
                         return;
                     }
-                    if (data.getInteger(ID_COMMAND).byteValue() == REMOTE_EXCUTE_CONTINUE_MESSAGE){
-                        if (data.getInteger(ID_PAGE_NUM).intValue()>1 &&
-                            data.getInteger(ID_PACKAGE_NUM).intValue()==1){
+                    if (data.getUnsignedInteger(ID_COMMAND).intValue() == REMOTE_EXCUTE_CONTINUE_MESSAGE){
+                        if (data.getUnsignedInteger(ID_PAGE_NUM).intValue()>1 &&
+                            data.getUnsignedInteger(ID_PACKAGE_NUM).intValue()==1){
                             this.post(sendToPebble);
                         }
                     }
@@ -680,12 +701,7 @@ public class PebbleCenter extends Service {
     Runnable closeApp=new Runnable() {
         @Override
         public void run() {
-            try {
-                Thread.sleep(3000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            PebbleKit.closeAppOnPebble(_contex,Constants.PEBBLE_UUID);
+
             pebbleBusy=false;
             appStatue=0;
         }
@@ -808,4 +824,5 @@ public class PebbleCenter extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         return START_STICKY;
     }
+
 }
