@@ -78,7 +78,7 @@ public class NavigationActivity extends Activity
         Constants.log(CLASS_TAG,"Section Attached:" + String.valueOf(number));
         switch (number) {
             case 0:
-                mTitle=getString(R.string.title_intro_setup_activity);
+                mTitle = getString(R.string.title_setup_activity);
             case 1:
                 mTitle = getString(R.string.title_setting_activity);
                 break;
@@ -95,9 +95,12 @@ public class NavigationActivity extends Activity
 
     public void restoreActionBar() {
         ActionBar actionBar = getActionBar();
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-        actionBar.setDisplayShowTitleEnabled(true);
-        actionBar.setTitle(mTitle);
+        if (actionBar != null) {
+            actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+            actionBar.setDisplayShowTitleEnabled(true);
+            actionBar.setTitle(mTitle);
+        }
+
     }
 
 

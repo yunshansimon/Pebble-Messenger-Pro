@@ -8,6 +8,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.ResolveInfo;
 import android.os.AsyncTask;
 import android.preference.DialogPreference;
+import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -81,7 +82,7 @@ public class AppListPreference extends DialogPreference {
 
         @Override
         public View getView(int position, View rowView, ViewGroup parent) {
-            ListViewHolder viewHolder = null;
+            ListViewHolder viewHolder;
             if (rowView == null) {
                 LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 rowView = inflater.inflate(R.layout.list_preference_layout, parent, false);
@@ -282,9 +283,12 @@ public class AppListPreference extends DialogPreference {
                     }
                 }
             }
-            SharedPreferences.Editor editor = getSharedPreferences().edit();
-            editor.putString(Constants.PREFERENCE_PACKAGE_LIST, selectedPackages);
-            editor.commit();
+            PreferenceManager pm=getPreferenceManager();
+            SharedPreferences.Editor editor = pm.getDefaultSharedPreferences(_context).edit();
+            editor.putString
+                    (Constants.PREFERENCE_PACKAGE_LIST, selectedPackages);
+
+            editor.apply();
             File watchFile = new File(_context.getFilesDir() + "PrefsChanged.none");
             if (!watchFile.exists()) {
                 try {

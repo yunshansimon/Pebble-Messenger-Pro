@@ -192,7 +192,8 @@ public class MessageDbHandler extends SQLiteOpenHelper {
                 _db.update(TABLE_MESSAGE_NAME, values, "ID =" + String.valueOf(ID), null);
             }
         }else{
-            content=null;
+            content.putString(MessageDbHandler.COL_MESSAGE_ID,ID);
+            content.putString(MessageDbHandler.COL_MESSAGE_CONTENT,_context.getString(R.string.seek_null_message));
         }
         cursor.close();
         return content;

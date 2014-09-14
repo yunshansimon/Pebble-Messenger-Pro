@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
@@ -15,8 +16,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
-import android.preference.Preference;
 import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
@@ -27,15 +28,12 @@ import com.android.internal.telephony.ITelephony;
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.util.PebbleDictionary;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import java.util.prefs.PreferenceChangeEvent;
-import java.util.prefs.PreferenceChangeListener;
+
 
 import yangtsao.pebblemessengerpro.Constants;
 import yangtsao.pebblemessengerpro.R;
@@ -71,10 +69,8 @@ public class PebbleCenter extends Service {
     private int fLines;  //page contain lines
     private int fLength; //package max length
     private byte char_scale;
-    private File watchFile;
-    private Long lastChange;
     private Long timeOut;
-    private boolean callMessengerEnable;
+    private boolean callEnable=true;
     private String sms1;
     private String sms2;
 
@@ -106,6 +102,7 @@ public class PebbleCenter extends Service {
 
     //pebble command
     private static final int ID_COMMAND=0;
+    private static final byte REMOTE_EMPTY=0;
     private static final byte REMOTE_EXCUTE_NEW_MESSAGE=1;
     private static final byte REMOTE_EXCUTE_NEW_CALL=2;
     private static final byte REMOTE_EXCUTE_CONTINUE_MESSAGE=3;
@@ -136,7 +133,6 @@ public class PebbleCenter extends Service {
 
 
     private Context _contex;
-
     private Messenger rMessageProcessingHandler=null;
 
 
@@ -158,16 +154,6 @@ public class PebbleCenter extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        watchFile = new File(getFilesDir() + "PrefsChanged.none");
-        if (!watchFile.exists()) {
-            try {
-                watchFile.createNewFile();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            watchFile.setLastModified(System.currentTimeMillis());
-        }
         loadPref();
         _contex=this;
         busyBegin=new Time();
@@ -265,6 +251,19 @@ public class PebbleCenter extends Service {
                         sendMsgThreadHandler.sendEmptyMessage(SEND_NEXT_PAGE);
                         break;
                     case REQUEST_TRANSID_READ_NOTIFY:
+                    {
+                        Constants.log(TAG_NAME,"Get command to read msg");
+                        Message read_msg=Message.obtain();
+                        read_msg.what=MessageProcessingService.MSG_READ;
+                        Bundle bd=new Bundle();
+                        bd.putString(MessageDbHandler.COL_MESSAGE_ID,data.getUnsignedInteger(ID_EXTRA_DATA).toString());
+                        read_msg.setData(bd);
+                        try {
+                            rMessageProcessingHandler.send(read_msg);
+                        } catch (RemoteException e) {
+                            e.printStackTrace();
+                        }
+                    }
                         break;
                     case REQUEST_TRANSID_IM_FREE:
                         pebbleBusy=false;
@@ -328,6 +327,16 @@ public class PebbleCenter extends Service {
                 clean_SendQue();
             }
         });
+
+        BroadcastReceiver br= new BroadcastReceiver(){
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Constants.log(TAG_NAME,"Get shared preference changed.");
+                loadPref();
+            }
+        };
+        IntentFilter intentFilter=new IntentFilter(PebbleCenter.class.getName());
+        LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(br,intentFilter);
     }
 
     @Override
@@ -341,9 +350,6 @@ public class PebbleCenter extends Service {
         public void handleMessage(Message msg) {
             Constants.log(TAG_NAME,"Get a msg. Pebble is " + String.valueOf(isPebbleEnable) + " what:" + String.valueOf(msg.what));
             if(!isPebbleEnable) return;
-            if (watchFile.lastModified() > lastChange) {
-                loadPref();
-            }
             switch (msg.what){
                 case PEBBLE_SEND_MESSAGE: {
                     waitQueue.add((PebbleMessage) msg.getData().getSerializable(MessageProcessingService.PROCEED_MSG));
@@ -371,6 +377,7 @@ public class PebbleCenter extends Service {
                 case PEBBLE_CALL_IDLE:
                     sendMsgThreadHandler.sendEmptyMessage(SEND_CALL_END);
                     break;
+
                 default:
                     super.handleMessage(msg);
             }
@@ -429,7 +436,6 @@ public class PebbleCenter extends Service {
                 }
                     break;
                 case PREPARE_CALL:
-                    clean_SendQue();
                     PebbleCall pbCall=(PebbleCall) msg.getData().getSerializable(MessageProcessingService.PROCEED_CALL);
                     split_call_to_package_add_to_sendQue(pbCall);
                     sendMsgThreadHandler.sendEmptyMessage(SEND_CALL);
@@ -561,13 +567,13 @@ public class PebbleCenter extends Service {
 
     private void split_call_to_package_add_to_sendQue(PebbleCall pbCall){
         byte totalPackages=(byte) (pbCall.getCharacterQueue().size() +1);
+        send_empty_msg();
         PebbleDictionary dataMsg;
         for (int pg=totalPackages;pg>1;pg--){
             dataMsg=new PebbleDictionary();
             dataMsg.addUint8(ID_COMMAND,REMOTE_EXCUTE_CONTINUE_CALL);
             dataMsg.addUint8(ID_TOTAL_PACKAGES,totalPackages);
             dataMsg.addUint8(ID_PACKAGE_NUM,(byte) pg);
-            dataMsg.addUint32(ID_INFO_ID,pbCall.get_id().intValue());
             CharacterMatrix cm= pbCall.getCharacterQueue().pollLast();
             int size=cm.getByteList().size();
             byte[] b2=new byte[size];
@@ -582,7 +588,8 @@ public class PebbleCenter extends Service {
 
         dataMsg.addUint8(ID_TOTAL_PACKAGES,totalPackages);
         dataMsg.addUint8(ID_PACKAGE_NUM, (byte) 1);
-        dataMsg.addString(ID_ASCSTR,pbCall.getAscMsg());
+        dataMsg.addString(ID_ASCSTR, pbCall.getAscMsg());
+        dataMsg.addUint32(ID_INFO_ID, pbCall.get_id().intValue());
         sendQueue.addFirst(dataMsg);
     }
 
@@ -598,6 +605,12 @@ public class PebbleCenter extends Service {
     private void clean_SendQue(){
         sendQueue.clear();
         pebbleBusy=false;
+    }
+
+    private void send_empty_msg(){
+        PebbleDictionary pd=new PebbleDictionary();
+        pd.addUint8(ID_COMMAND,REMOTE_EMPTY);
+        PebbleKit.sendDataToPebbleWithTransactionId(_contex,Constants.PEBBLE_UUID,pd,TRANS_ID_END);
     }
 
     class SendMsgThread extends Thread{
@@ -652,12 +665,8 @@ public class PebbleCenter extends Service {
                         Constants.log(TAG_NAME,"sendQueue is empty! Can not send");
                         return;
                     }
-                    if (data.getUnsignedInteger(ID_COMMAND).intValue() == REMOTE_EXCUTE_CONTINUE_MESSAGE){
-                        if (data.getUnsignedInteger(ID_PAGE_NUM).intValue()>1 &&
-                            data.getUnsignedInteger(ID_PACKAGE_NUM).intValue()==1){
-                            this.post(sendToPebble);
-                        }
-                    }
+                    this.post(sendToPebble);
+
                 }
                     break;
                 case SEND_CALL:
@@ -711,7 +720,7 @@ public class PebbleCenter extends Service {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         fLength=Constants.MAX_PACKAGE_LENGTH;
         timeOut=Long.parseLong(sharedPref.getString(Constants.PREFERENCE_MIN_NOTIFICATION_WAIT, "10000"));
-        callMessengerEnable = sharedPref.getBoolean(Constants.PREFERENCE_CALL_ENABLE, true);
+        callEnable = sharedPref.getBoolean(Constants.PREFERENCE_CALL_ENABLE, true);
         char_scale=(byte)Integer.parseInt(sharedPref.getString(Constants.PREFERENCE_MESSAGE_SCALE,String.valueOf(Constants.MESSAGE_SCALE_SMALL)));
         switch ((int)char_scale){
             case Constants.MESSAGE_SCALE_SMALL:
@@ -727,19 +736,18 @@ public class PebbleCenter extends Service {
                 fLines=Constants.LARGE_PAGE_CONTAIN_LINES;
                 break;
         }
-        if (callMessengerEnable) {
+        if (callEnable) {
             sms1 = sharedPref.getString(Constants.PREFERENCE_CALL_SMS_SHORT,
                     getString(R.string.pref_call_sms_short_default));
             sms2 = sharedPref.getString(Constants.PREFERENCE_CALL_SMS_LONG,
                     getString(R.string.pref_call_sms_long_default));
         }
-        lastChange = watchFile.lastModified();
     }
 
     private void endCall() {
         TelephonyManager telMag = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         Class<TelephonyManager> c = TelephonyManager.class;
-        Method mthEndCall = null;
+        Method mthEndCall;
         try {
             mthEndCall = c.getDeclaredMethod("getITelephony", (Class[]) null);
             mthEndCall.setAccessible(true);

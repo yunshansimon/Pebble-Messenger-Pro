@@ -2,9 +2,11 @@ package yangtsao.pebblemessengerpro.services;
 
 import android.app.Application;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -16,6 +18,8 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.preference.Preference;
 import android.preference.PreferenceManager;
+import android.speech.tts.TextToSpeech;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.format.Time;
 
 import java.io.File;
@@ -37,7 +41,7 @@ import yangtsao.pebblemessengerpro.models.Font;
 import yangtsao.pebblemessengerpro.models.PebbleCall;
 import yangtsao.pebblemessengerpro.models.PebbleMessage;
 
-public class MessageProcessingService extends Service  {
+public class MessageProcessingService extends Service implements TextToSpeech.OnInitListener {
     private static FontDbHandler fdb;
     private static MessageDbHandler mdb;
     private static Context _context;
@@ -52,11 +56,16 @@ public class MessageProcessingService extends Service  {
     public static final int MSG_GET_MESSAGE        =6;
     public static final int MSG_GET_CALL           =7;
     public static final int MSG_CLEAN              =8;
+    public static final int MSG_READ               =9;
+    public static final int MSG_MAKE_CALL          =10;
 
     private static final int INNER_MESSAGE_PROCEED=0;
     private static final int INNER_CALL_PROCEED=1;
     public static final String PROCEED_MSG="proceed_message";
     public static final String PROCEED_CALL="proceed_call";
+    private TextToSpeech myTTS;
+    private boolean myTTSisOK;
+
 
     public MessageProcessingService() {
     }
@@ -65,8 +74,6 @@ public class MessageProcessingService extends Service  {
     private Handler processHandler;
     private Thread proceedthread;
     private Handler messageHandler;
-    private File watchFile;
-    private long      lastChange;
     private boolean   quiet_hours           = false;
     private Calendar quiet_hours_before    = null;
     private Calendar      quiet_hours_after     = null;
@@ -98,16 +105,7 @@ public class MessageProcessingService extends Service  {
     @Override
     public void onCreate() {
         super.onCreate();
-        watchFile = new File(getFilesDir() + "PrefsChanged.none");
-        if (!watchFile.exists()) {
-            try {
-                watchFile.createNewFile();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            watchFile.setLastModified(System.currentTimeMillis());
-        }
+
         loadPrefs();
         proceedthread=new ProcessThread();
         proceedthread.start();
@@ -120,7 +118,26 @@ public class MessageProcessingService extends Service  {
         mdb.open();
         bindService(new Intent(this, PebbleCenter.class), connToPebbleCenter,
                 Context.BIND_AUTO_CREATE);
+        BroadcastReceiver br= new BroadcastReceiver(){
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                loadPrefs();
+            }
+        };
+        IntentFilter intentFilter=new IntentFilter(MessageProcessingService.class.getName());
+        LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(br,intentFilter);
+        myTTS=new TextToSpeech(this,this);
 
+    }
+
+    @Override
+    public void onInit(int i) {
+        if (i==TextToSpeech.SUCCESS){
+            myTTSisOK=true;
+        }else{
+            myTTSisOK=false;
+            myTTS.shutdown();
+        }
     }
 
     @Override
@@ -128,6 +145,7 @@ public class MessageProcessingService extends Service  {
         fdb.close();
         mdb.close();
         unbindService(connToPebbleCenter);
+        if(myTTS!=null) myTTS.shutdown();
         super.onDestroy();
     }
 
@@ -138,15 +156,12 @@ public class MessageProcessingService extends Service  {
 
         @Override
         public void handleMessage(Message msg) {
-            if (watchFile.lastModified() > lastChange) {
-                loadPrefs();
-            }
+
             Constants.log(TAG_NAME,"New msg arrived. what:" + String.valueOf(msg.what));
             switch (msg.what){
                 case MSG_NEW_MESSAGE:
 
                     if (quiet_hours) {
-
                         Calendar c = Calendar.getInstance();
                         Calendar now = new GregorianCalendar(0, 0, 0, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE));
                         Constants.log(TAG_NAME, "Checking quiet hours. Now: " + now.toString() + " vs "
@@ -155,28 +170,22 @@ public class MessageProcessingService extends Service  {
                             Constants.log(TAG_NAME, "Time is before or after the quiet hours time. Returning.");
                             addNewMessage(msg.getData(), MessageDbHandler.NEW_ICON);
                         } else {
-
                             Bundle b= msg.getData();
                             b.putLong(MessageDbHandler.COL_MESSAGE_ID,addNewMessage(msg.getData(), MessageDbHandler.OLD_ICON));
                             Message innerMsg=processHandler.obtainMessage(INNER_MESSAGE_PROCEED);
                             innerMsg.setData(b);
-
                             processHandler.sendMessage(innerMsg);
                         }
                     }else{
-
                         Bundle b=msg.getData();
                         b.putLong(MessageDbHandler.COL_MESSAGE_ID,addNewMessage(msg.getData(), MessageDbHandler.OLD_ICON));
                         Message innerMsg=processHandler.obtainMessage(INNER_MESSAGE_PROCEED);
                         innerMsg.setData(b);
-
                         processHandler.sendMessage(innerMsg);
-
                     }
                     break;
                 case MSG_NEW_CALL:
                     if (callQuietEnable) {
-
                         Calendar c = Calendar.getInstance();
                         Calendar now = new GregorianCalendar(0, 0, 0, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE));
                         Constants.log(TAG_NAME, "Checking quiet hours. Now: " + now.toString() + " vs "
@@ -277,6 +286,14 @@ public class MessageProcessingService extends Service  {
                 case MSG_CLEAN:
                     mdb.cleanAll();
                     break;
+                case MSG_READ:
+                    Constants.log(TAG_NAME,"Seek and read msg"+ msg.getData().getString(MessageDbHandler.COL_MESSAGE_ID));
+                    Bundle bd=mdb.getColMessageContent(msg.getData().getString(MessageDbHandler.COL_MESSAGE_ID));
+                    if (myTTSisOK) myTTS.speak(bd.getString(MessageDbHandler.COL_MESSAGE_CONTENT),TextToSpeech.QUEUE_FLUSH,null);
+                    break;
+                case MSG_MAKE_CALL:
+                    break;
+
                 default:
                     super.handleMessage(msg);
             }
@@ -602,7 +619,6 @@ public class MessageProcessingService extends Service  {
                 fLines=Constants.LARGE_PAGE_CONTAIN_LINES;
                 break;
         }
-        lastChange = watchFile.lastModified();
     }
 
     @Override

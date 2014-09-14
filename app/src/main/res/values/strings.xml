@@ -42,8 +42,8 @@
     </string-array>
     <string-array name="pref_notif_font_size">
         <item>Normal (16 chars* 9 lines)</item>
-        <item>Middle (14 chars* 8 lines)</item>
-        <item>Large  (12 chars* 6 lines)</item>
+        <item>Middle (12 chars* 6 lines)</item>
+        <item>Large  (9 chars* 4 lines)</item>
     </string-array>
     <string-array name="pref_notif_font_size_value">
         <item>0</item>
@@ -62,8 +62,8 @@
     <string name="pref_call_sms_long_summ">You can setting another short message, and send it just press middle button of pebble for 0.5 sec</string>
     <string name="pref_call_sms_short_default">Sorry! I am busy and call you later.</string>
     <string name="pref_call_sms_long_default">Sorry! I am in a meeting, Send me message or waiting for my call back.</string>
+    <string name="title_setup_activity">Initiation</string>
     <string name="title_setting_activity">Setting</string>
-    <string name="title_intro_setup_activity">Initiation</string>
     <string name="title_tools_activity">Tools</string>
     <string name="title_about_activity">About</string>
     <string name="title_activity_navigation">NavigationActivity</string>
@@ -110,4 +110,6 @@
     <string name="test_message_content">I more like my Pebble than rolex.</string>
     <string name="test_call_number">65432187</string>
     <string name="test_call_name">Rolex</string>
+
+    <string name="seek_null_message">The message you want is no longer exist.</string>
 </resources>

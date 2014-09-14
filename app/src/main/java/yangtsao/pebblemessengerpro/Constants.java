@@ -44,11 +44,12 @@ public class Constants {
     public static final int MAX_PACKAGE_LENGTH=120;
     public static final int SMALL_LINE_CONTAIN_CHARS=16;
     public static final int SMALL_PAGE_CONTAIN_LINES=9;
-    public static final int MID_LINE_CONTAIN_CHARS=14;
-    public static final int MID_PAGE_CONTAIN_LINES=8;
-    public static final int LARGE_LINE_CONTAIN_CHARS=12;
-    public static final int LARGE_PAGE_CONTAIN_LINES=6;
+    public static final int MID_LINE_CONTAIN_CHARS=12;
+    public static final int MID_PAGE_CONTAIN_LINES=6;
+    public static final int LARGE_LINE_CONTAIN_CHARS=9;
+    public static final int LARGE_PAGE_CONTAIN_LINES=4;
     //-----------------------------------------
+    public static final int RELOAD_PREFERENCE=99;
 
     //Pebble app communication
     public static final UUID PEBBLE_UUID= UUID.fromString("2d0b18b1-0ee6-41ca-9579-a0c4c6568d93");

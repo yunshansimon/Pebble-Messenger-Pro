@@ -1,9 +1,11 @@
 package yangtsao.pebblemessengerpro.services;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.net.Uri;
@@ -17,6 +19,7 @@ import android.os.PowerManager;
 import android.os.RemoteException;
 import android.preference.Preference;
 import android.provider.ContactsContract;
+import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -46,12 +49,10 @@ import static android.content.Context.*;
 
 public class NotificationService extends AccessibilityService {
     private static final String LOG_TAG="NotificationService";
-    private long      lastChange;
     private boolean   notifications_only    = false;
     private boolean   no_ongoing_notifs     = false;
     private boolean   notifScreenOn         = true;
     private String[]  packages              = null;
-    private File      watchFile;
     private boolean   callMessengerEnable   = false;
 
     private Messenger rMessageProcessHandler=null;
@@ -93,9 +94,7 @@ public class NotificationService extends AccessibilityService {
         if (!notifScreenOn && powMan.isScreenOn()) {
             return;
         }
-        if (watchFile.lastModified() > lastChange) {
-            loadPrefs();
-        }
+
 
         if (notifications_only) {
             if (event != null) {
@@ -276,7 +275,6 @@ public class NotificationService extends AccessibilityService {
         no_ongoing_notifs = sharedPref.getBoolean(Constants.PREFERENCE_NO_ONGOING_NOTIF, false);
         notifScreenOn = sharedPref.getBoolean(Constants.PREFERENCE_NOTIF_SCREEN_ON, true);
         callMessengerEnable=sharedPref.getBoolean(Constants.PREFERENCE_CALL_ENABLE,false);
-        lastChange = watchFile.lastModified();
     }
     @Override
     public void onInterrupt() {
@@ -292,20 +290,18 @@ public class NotificationService extends AccessibilityService {
     @Override
     public void onServiceConnected() {
         // get inital preferences
-        watchFile = new File(getFilesDir() + "PrefsChanged.none");
-        if (!watchFile.exists()) {
-            try {
-                watchFile.createNewFile();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            watchFile.setLastModified(System.currentTimeMillis());
-        }
         loadPrefs();
         bindService(new Intent(this, MessageProcessingService.class), connToMessageProcess,
                 Context.BIND_AUTO_CREATE);
         bindService(new Intent(this,PebbleCenter.class),connToPebbleCenter,Context.BIND_AUTO_CREATE);
+        BroadcastReceiver br= new BroadcastReceiver(){
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                loadPrefs();
+            }
+        };
+        IntentFilter intentFilter=new IntentFilter(NotificationService.class.getName());
+        LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(br,intentFilter);
     }
     @Override
     public void onDestroy() {
@@ -384,5 +380,6 @@ public class NotificationService extends AccessibilityService {
     public int onStartCommand(Intent intent, int flags, int startId) {
         return START_STICKY;
     }
+
 
 }
