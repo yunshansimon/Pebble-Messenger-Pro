@@ -171,6 +171,7 @@ public class PebbleCenter extends Service {
             @Override
             public void receiveData(Context context, int transactionId, PebbleDictionary data) {
                 PebbleKit.sendAckToPebble(_contex, transactionId);
+                appStatue++;
                 Constants.log(TAG_NAME,"Received data form pebble");
                 switch (data.getUnsignedInteger(ID_COMMAND).intValue()){
                     case REQUEST_TRANSID_CALL_TABLE: {
@@ -597,7 +598,7 @@ public class PebbleCenter extends Service {
         dataMsg.addUint8(ID_TOTAL_PACKAGES,totalPackages);
         dataMsg.addUint8(ID_PACKAGE_NUM, (byte) 1);
         dataMsg.addString(ID_ASCSTR, pbCall.getAscMsg());
-        dataMsg.addString(ID_PACKAGE_NUM,pbCall.getPhoneNum());
+        dataMsg.addString(ID_PHONE_NUM,pbCall.getPhoneNum());
         dataMsg.addUint32(ID_INFO_ID, pbCall.get_id().intValue());
         sendQueue.addFirst(dataMsg);
     }
