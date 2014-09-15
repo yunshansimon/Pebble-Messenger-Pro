@@ -197,14 +197,14 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
                             Bundle b=msg.getData();
                             b.putLong(MessageDbHandler.COL_CALL_ID, addNewCall(msg.getData(),MessageDbHandler.OLD_ICON));
                             Message innerMsg=processHandler.obtainMessage(INNER_CALL_PROCEED);
-                            innerMsg.setData(msg.getData());
+                            innerMsg.setData(b);
                             processHandler.sendMessage(innerMsg);
                         }
                     }else{
                         Bundle b=msg.getData();
                         b.putLong(MessageDbHandler.COL_CALL_ID, addNewCall(msg.getData(),MessageDbHandler.OLD_ICON));
                         Message innerMsg=processHandler.obtainMessage(INNER_CALL_PROCEED);
-                        innerMsg.setData(msg.getData());
+                        innerMsg.setData(b);
                         processHandler.sendMessage(innerMsg);
                     }
                     break;

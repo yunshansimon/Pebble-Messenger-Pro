@@ -122,6 +122,7 @@ public class PebbleCenter extends Service {
     private static final int ID_CLOSE_DELAY_SEC=9;
     private static final int ID_CHAR_SCALE=10;
     private static final int ID_INFO_ID=11;
+    private static final int ID_PHONE_NUM=12;
 
     private static final String TAG_NAME="PebbleCenter";
 
@@ -228,17 +229,24 @@ public class PebbleCenter extends Service {
                                 answerCall(false);
                                 break;
                         }
+                        pebbleBusy=false;
                         break;
                     case REQUEST_TRANSID_HANGOFF_PHONE:
                         endCall();
+                        pebbleBusy=false;
+
                         break;
                     case REQUEST_TRANSID_HANGOFF_SMS1:
                         endCall();
                         doSendSMSTo(data.getString(ID_EXTRA_DATA),sms1);
+                        pebbleBusy=false;
+
                         break;
                     case REQUEST_TRANSID_HANGOFF_SMS2:
                         endCall();
                         doSendSMSTo(data.getString(ID_EXTRA_DATA),sms2);
+                        pebbleBusy=false;
+
                         break;
                     case REQUEST_TRANSID_CLOSE_APP:
                         Constants.log(TAG_NAME,"Get close app command.");
@@ -283,6 +291,7 @@ public class PebbleCenter extends Service {
                         sendMsgThreadHandler.sendEmptyMessage(SEND_CONTINUE);
                         break;
                     case TRANS_ID_END:
+
                         break;
                 }
             }
@@ -585,10 +594,10 @@ public class PebbleCenter extends Service {
         }
         dataMsg=new PebbleDictionary();
         dataMsg.addUint8(ID_COMMAND,REMOTE_EXCUTE_NEW_CALL);
-
         dataMsg.addUint8(ID_TOTAL_PACKAGES,totalPackages);
         dataMsg.addUint8(ID_PACKAGE_NUM, (byte) 1);
         dataMsg.addString(ID_ASCSTR, pbCall.getAscMsg());
+        dataMsg.addString(ID_PACKAGE_NUM,pbCall.getPhoneNum());
         dataMsg.addUint32(ID_INFO_ID, pbCall.get_id().intValue());
         sendQueue.addFirst(dataMsg);
     }

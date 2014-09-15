@@ -243,7 +243,7 @@ public class NotificationService extends AccessibilityService {
 
             if (v instanceof TextView) {
                 TextView tv = (TextView) v;
-                if (tv.getText().toString() == "..."
+                if (tv.getText().toString() == "..." || tv.getText().toString() == "�"
                         || isInteger(tv.getText().toString()) || existing_text.contains(tv.getText().toString().trim())) {
                     Constants.log(LOG_TAG, "Text is: " + tv.getText().toString()
                                 + " but I am going to skip this");
