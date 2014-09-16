@@ -67,9 +67,7 @@ private static final int positionIndex=1;
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
         Constants.log(TAG_NAME,"Preferenc key:" + s + "changed.");
 
-        if (s.equalsIgnoreCase(Constants.PREFERENCE_NOTIFICATIONS_ONLY)){
-            LocalBroadcastManager.getInstance(_context).sendBroadcast(new Intent(NotificationService.class.getName()));
-        }else if (s.equalsIgnoreCase(Constants.PREFERENCE_NO_ONGOING_NOTIF)) {
+        if (s.equalsIgnoreCase(Constants.PREFERENCE_NO_ONGOING_NOTIF)) {
             LocalBroadcastManager.getInstance(_context).sendBroadcast(new Intent(NotificationService.class.getName()));
         }else if (s.equalsIgnoreCase(Constants.PREFERENCE_PACKAGE_LIST)) {
             LocalBroadcastManager.getInstance(_context).sendBroadcast(new Intent(NotificationService.class.getName()));

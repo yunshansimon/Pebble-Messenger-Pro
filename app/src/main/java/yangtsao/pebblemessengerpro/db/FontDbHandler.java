@@ -70,7 +70,7 @@ public class FontDbHandler extends SQLiteOpenHelper {
 
         new Thread(new Runnable() {
             private void addMultipleFontsx(List<Font> fonts, SQLiteDatabase db) {
-                StringBuilder b = new StringBuilder();
+                StringBuffer b = new StringBuffer();
 
                 Font first = fonts.get(0);
                 b.append("INSERT INTO '" + TABLE_HEX + "' " + "SELECT '" + first.getCodepoint() + "' AS '"
@@ -107,7 +107,7 @@ public class FontDbHandler extends SQLiteOpenHelper {
 
                     int count = 0;
 
-                    String line = null;
+                    String line;
                     while ((line = br.readLine()) != null) {
                         String[] parts = line.split(":");
 

@@ -51,6 +51,8 @@ public class PebbleCenter extends Service {
     public final static int PEBBLE_CALL_HOOK=6;
 
     public boolean isPebbleEnable=true;
+
+    public Messenger mPebbleCenterHandler;
     private static final int PREPARE_MESSAGE=1;
     private static final int PREPARE_CALL=2;
     private static final int PREPARE_MESSAGE_TABLE=3;
@@ -82,7 +84,7 @@ public class PebbleCenter extends Service {
     private boolean pebbleBusy=false;
     private Time busyBegin;
     private boolean need_delay=true;
-    private final static long MAX_WAITING_MILLIS=30000;
+    //private final static long MAX_WAITING_MILLIS=30000;
     private final static int MAX_CHARS_PACKAGE_CONTAIN=60;
     private int appStatue=0;
     //pebble request. Use transaction id to receive command, and extra data for the addition information.
@@ -133,6 +135,7 @@ public class PebbleCenter extends Service {
 
     private static final String TAG_NAME="PebbleCenter";
 
+    private Handler pebbleCenterHandler;
     private Handler prepareThreadHandler;
     private Handler sendMsgThreadHandler;
 
@@ -162,6 +165,9 @@ public class PebbleCenter extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        pebbleCenterHandler=new PebbleCenterHandler();
+        mPebbleCenterHandler=new Messenger(pebbleCenterHandler);
+        Constants.log(TAG_NAME,"Create PebbleCenter Messenger.");
         loadPref();
         _contex=this;
         busyBegin=new Time();
@@ -282,11 +288,7 @@ public class PebbleCenter extends Service {
                     }
                         break;
                     case REQUEST_TRANSID_IM_FREE:
-                        if(data.getUnsignedInteger(ID_EXTRA_DATA).intValue()==REQUEST_EXTRA_DELAY_OFF){
-                            need_delay=false;
-                        }else{
-                            need_delay=true;
-                        }
+                        need_delay = data.getUnsignedInteger(ID_EXTRA_DATA).intValue() == REQUEST_EXTRA_DELAY_ON ? true : false;
                         pebbleBusy=false;
 
                         break;
@@ -402,13 +404,13 @@ public class PebbleCenter extends Service {
                     sendMsgThreadHandler.sendEmptyMessage(SEND_CALL_END);
                     break;
                 case PEBBLE_CALL_HOOK:
-
+                    sendMsgThreadHandler.sendEmptyMessage(SEND_CALL_HOOK);
                 default:
                     super.handleMessage(msg);
             }
         }
     }
-    Messenger mPebbleCenterHandler=new Messenger(new PebbleCenterHandler());
+
     @Override
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
@@ -697,6 +699,8 @@ public class PebbleCenter extends Service {
                 {
                     PebbleDictionary callEnd=new PebbleDictionary();
                     callEnd.addUint8(ID_COMMAND,REMOTE_EXCUTE_CALL_END);
+                    callEnd.addUint8(ID_TOTAL_PACKAGES,(byte)1);
+                    callEnd.addUint8(ID_PACKAGE_NUM,(byte)1);
                     sendQueue.addFirst(callEnd);
                     this.postAtFrontOfQueue(sendToPebble);
                 }
@@ -707,6 +711,8 @@ public class PebbleCenter extends Service {
                 case SEND_CALL_HOOK:
                     PebbleDictionary callHook=new PebbleDictionary();
                     callHook.addUint8(ID_COMMAND,REMOTE_EXCUTE_CALL_HOOK);
+                    callHook.addUint8(ID_TOTAL_PACKAGES,(byte)1);
+                    callHook.addUint8(ID_PACKAGE_NUM,(byte)1);
                     sendQueue.addFirst(callHook);
                     this.postAtFrontOfQueue(sendToPebble);
                     break;

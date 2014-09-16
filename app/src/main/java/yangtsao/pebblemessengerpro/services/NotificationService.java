@@ -36,7 +36,7 @@ import android.widget.TextView;
 
 public class NotificationService extends AccessibilityService {
     private static final String LOG_TAG="NotificationService";
-    private boolean   notifications_only    = false;
+
     private boolean   no_ongoing_notifs     = false;
     private boolean   notifScreenOn         = true;
     private String[]  packages              = null;
@@ -77,45 +77,18 @@ public class NotificationService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
+        if(event.getEventType()!= AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED){
+            return;
+        }
         PowerManager powMan = (PowerManager) this.getSystemService(POWER_SERVICE);
         if (!notifScreenOn && powMan.isScreenOn()) {
             return;
         }
-
-
-        if (notifications_only) {
-            if (event != null) {
-                Parcelable parcelable = event.getParcelableData();
-                if (!(parcelable instanceof Notification)) {
-
-                    Constants.log(LOG_TAG,
-                            "Event is not a notification and notifications only is enabled. Returning.");
-                    return;
-                }
-            }
-        }
+        Notification notif=(Notification) event.getParcelableData();
         if (no_ongoing_notifs) {
-            Parcelable parcelable;
-            if (event != null) {
-                parcelable = event.getParcelableData();
-            }else{
-                return;
-            }
-            if (parcelable instanceof Notification) {
-                Notification notif = (Notification) parcelable;
-                Constants.log(
-                        LOG_TAG,
-                        "Looking at " + String.valueOf(notif.flags) + " vs "
-                                + String.valueOf(Notification.FLAG_ONGOING_EVENT));
-                if ((notif.flags & Notification.FLAG_ONGOING_EVENT) == Notification.FLAG_ONGOING_EVENT) {
-                    Constants
-                            .log(LOG_TAG,
-                                    "Event is a notification, notification flag contains ongoing, and no ongoing notification is true. Returning.");
-                    return;
-                }
-            } else {
-                Constants.log(LOG_TAG, "Event is not a notification.");
-            }
+           if((notif.flags & Notification.FLAG_ONGOING_EVENT)==Notification.FLAG_ONGOING_EVENT){
+               return;
+           }
         }
         String eventPackageName;
 
@@ -264,7 +237,6 @@ public class NotificationService extends AccessibilityService {
     private void loadPrefs() {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         packages = sharedPref.getString(Constants.PREFERENCE_PACKAGE_LIST, "").split(",");
-        notifications_only = sharedPref.getBoolean(Constants.PREFERENCE_NOTIFICATIONS_ONLY, true);
         no_ongoing_notifs = sharedPref.getBoolean(Constants.PREFERENCE_NO_ONGOING_NOTIF, false);
         notifScreenOn = sharedPref.getBoolean(Constants.PREFERENCE_NOTIF_SCREEN_ON, true);
         callMessengerEnable=sharedPref.getBoolean(Constants.PREFERENCE_CALL_ENABLE,false);
@@ -295,9 +267,16 @@ public class NotificationService extends AccessibilityService {
         };
         IntentFilter intentFilter=new IntentFilter(NotificationService.class.getName());
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(br,intentFilter);
+
+ /*       try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         MyPhoneListener phoneListener = new MyPhoneListener();
         TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
         telephonyManager.listen(phoneListener, PhoneStateListener.LISTEN_CALL_STATE);
+        */
     }
     @Override
     public void onDestroy() {
@@ -339,6 +318,7 @@ public class NotificationService extends AccessibilityService {
                 {
                     Message msg_idle=Message.obtain();
                     msg_idle.what=PebbleCenter.PEBBLE_CALL_IDLE;
+                    if(rPebbleCenterHandler==null) Constants.log(LOG_TAG,"rPebbleCenterHandler is null!");
                     try {
                         rPebbleCenterHandler.send(msg_idle);
                     } catch (RemoteException e) {
@@ -349,7 +329,16 @@ public class NotificationService extends AccessibilityService {
                     break;
 
                 case TelephonyManager.CALL_STATE_OFFHOOK:
-
+                {
+                    Message msg_hook=Message.obtain();
+                    msg_hook.what=PebbleCenter.PEBBLE_CALL_HOOK;
+                    try {
+                        rPebbleCenterHandler.send(msg_hook);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                        Constants.log(LOG_TAG,"Error when sending hook message to PebbleCenter.");
+                    }
+                }
                     break;
             }
 

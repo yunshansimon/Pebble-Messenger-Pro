@@ -22,7 +22,6 @@ public class Constants {
     //----------------------------------------
 
     // Shared preferences
-    public static final String  PREFERENCE_NOTIFICATIONS_ONLY         = "pref_notif_only";
     public static final String  PREFERENCE_NO_ONGOING_NOTIF           = "pref_no_ongoing_notif";
     public static final String  PREFERENCE_PACKAGE_LIST               = "pref_package_list";
     public static final String  PREFERENCE_NOTIF_SCREEN_ON            = "pref_notif_screen_on";
@@ -49,11 +48,10 @@ public class Constants {
     public static final int LARGE_LINE_CONTAIN_CHARS=9;
     public static final int LARGE_PAGE_CONTAIN_LINES=4;
     //-----------------------------------------
-    public static final int RELOAD_PREFERENCE=99;
 
     //Pebble app communication
     public static final UUID PEBBLE_UUID= UUID.fromString("2d0b18b1-0ee6-41ca-9579-a0c4c6568d93");
-    public static final String  INTENT_SEND_PEBBLE_NOTIFICATION       = "com.getpebble.action.SEND_NOTIFICATION";
+//    public static final String  INTENT_SEND_PEBBLE_NOTIFICATION       = "com.getpebble.action.SEND_NOTIFICATION";
     public static final String  PEBBLE_APP_URL="";
     //Shared function
     public static void log(String tag, String message) {

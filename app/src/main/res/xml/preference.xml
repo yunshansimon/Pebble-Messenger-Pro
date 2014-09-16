@@ -9,11 +9,7 @@
             android:defaultValue=""
             android:title="@string/pref_package_list"
             android:summary="@string/pref_package_list_summ" />
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="pref_notif_only"
-            android:summary="@string/pref_notif_only_summ"
-            android:title="@string/pref_notif_only" />
+
         <ListPreference
             android:key="pref_notif_timeout"
             android:title="@string/pref_notif_timeout"
