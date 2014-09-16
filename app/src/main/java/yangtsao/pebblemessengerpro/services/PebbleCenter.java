@@ -48,6 +48,7 @@ public class PebbleCenter extends Service {
     public final static int PEBBLE_CALL_IDLE=3;
     public final static int PEBBLE_SEND_MESSAGE_TABLE=4;
     public final static int PEBBLE_SEND_CALL_TABLE=5;
+    public final static int PEBBLE_CALL_HOOK=6;
 
     public boolean isPebbleEnable=true;
     private static final int PREPARE_MESSAGE=1;
@@ -61,6 +62,7 @@ public class PebbleCenter extends Service {
     private static final int SEND_CALL=4;
     private static final int SEND_CALL_END=5;
     private static final int SEND_CLOSE_APP=6;
+    private static final int SEND_CALL_HOOK=7;
 
     private static final int TRANS_ID_COMMON=0;
     private static final int TRANS_ID_END=1;
@@ -76,9 +78,10 @@ public class PebbleCenter extends Service {
 
 
     private Deque<PebbleDictionary> sendQueue;
-    private Deque<PebbleMessage> waitQueue;
+//    private Deque<PebbleMessage> waitQueue;
     private boolean pebbleBusy=false;
     private Time busyBegin;
+    private boolean need_delay=true;
     private final static long MAX_WAITING_MILLIS=30000;
     private final static int MAX_CHARS_PACKAGE_CONTAIN=60;
     private int appStatue=0;
@@ -98,6 +101,9 @@ public class PebbleCenter extends Service {
     private static final int ID_EXTRA_DATA=2;
     private static final int REQUEST_EXTRA_SPEAKER_ON=1;
     private static final int REQUEST_EXTRA_SPEAKER_OFF=2;
+    private static final int REQUEST_EXTRA_DELAY_OFF=0;
+    private static final int REQUEST_EXTRA_DELAY_ON=1;
+
 
 
     //pebble command
@@ -111,6 +117,7 @@ public class PebbleCenter extends Service {
     private static final byte REMOTE_DISPLAY_CALL_TABLE=6;
     private static final byte REMOTE_EXCUTE_CALL_END=7;
     private static final byte REMOTE_DISPLAY_CONTINUE=8;
+    private static final byte REMOTE_EXCUTE_CALL_HOOK=9;
     private static final int ID_TOTAL_PAGES=1;
     private static final int ID_PAGE_NUM=2;
     private static final int ID_TOTAL_PACKAGES=3;
@@ -158,7 +165,7 @@ public class PebbleCenter extends Service {
         loadPref();
         _contex=this;
         busyBegin=new Time();
-        waitQueue=new ArrayDeque<PebbleMessage>();
+//        waitQueue=new ArrayDeque<PebbleMessage>();
         sendQueue=new ArrayDeque<PebbleDictionary>();
         bindService(new Intent(this, MessageProcessingService.class), connToMessageProcessing,
                 Context.BIND_AUTO_CREATE);
@@ -252,7 +259,7 @@ public class PebbleCenter extends Service {
                     case REQUEST_TRANSID_CLOSE_APP:
                         Constants.log(TAG_NAME,"Get close app command.");
                        // sendMsgThreadHandler.sendEmptyMessage(SEND_CLOSE_APP);
-                        pebbleBusy=false;
+                        need_delay=true;
                         appStatue=0;
                         clean_SendQue();
                         break;
@@ -275,8 +282,13 @@ public class PebbleCenter extends Service {
                     }
                         break;
                     case REQUEST_TRANSID_IM_FREE:
+                        if(data.getUnsignedInteger(ID_EXTRA_DATA).intValue()==REQUEST_EXTRA_DELAY_OFF){
+                            need_delay=false;
+                        }else{
+                            need_delay=true;
+                        }
                         pebbleBusy=false;
-                        clean_SendQue();
+
                         break;
                 }
             }
@@ -362,31 +374,34 @@ public class PebbleCenter extends Service {
             if(!isPebbleEnable) return;
             switch (msg.what){
                 case PEBBLE_SEND_MESSAGE: {
-                    waitQueue.add((PebbleMessage) msg.getData().getSerializable(MessageProcessingService.PROCEED_MSG));
-                    prepareThreadHandler.sendEmptyMessage(PREPARE_MESSAGE);
+  //                  waitQueue.add((PebbleMessage) msg.getData().getSerializable(MessageProcessingService.PROCEED_MSG));
+                    Message pebbleMsg=prepareThreadHandler.obtainMessage(PREPARE_MESSAGE);
+                    pebbleMsg.setData(msg.getData());
+                    prepareThreadHandler.sendMessage(pebbleMsg);
                 }
                     break;
                 case PEBBLE_SEND_CALL:{
                     Message callMsg=prepareThreadHandler.obtainMessage(PREPARE_CALL);
                     callMsg.setData(msg.getData());
-                    prepareThreadHandler.sendMessage(callMsg);
+                    prepareThreadHandler.sendMessageAtFrontOfQueue(callMsg);
                 }
                     break;
                 case PEBBLE_SEND_MESSAGE_TABLE:{
-                    Message callMsg=prepareThreadHandler.obtainMessage(PREPARE_MESSAGE_TABLE);
-                    callMsg.setData(msg.getData());
-                    prepareThreadHandler.sendMessage(callMsg);
+                    Message ptMsg=prepareThreadHandler.obtainMessage(PREPARE_MESSAGE_TABLE);
+                    ptMsg.setData(msg.getData());
+                    prepareThreadHandler.sendMessage(ptMsg);
                 }
                     break;
                 case PEBBLE_SEND_CALL_TABLE:{
-                    Message callMsg=prepareThreadHandler.obtainMessage(PREPARE_CALL_TABLE);
-                    callMsg.setData(msg.getData());
-                    prepareThreadHandler.sendMessage(callMsg);
+                    Message ctMsg=prepareThreadHandler.obtainMessage(PREPARE_CALL_TABLE);
+                    ctMsg.setData(msg.getData());
+                    prepareThreadHandler.sendMessage(ctMsg);
                 }
                 break;
                 case PEBBLE_CALL_IDLE:
                     sendMsgThreadHandler.sendEmptyMessage(SEND_CALL_END);
                     break;
+                case PEBBLE_CALL_HOOK:
 
                 default:
                     super.handleMessage(msg);
@@ -419,28 +434,26 @@ public class PebbleCenter extends Service {
         public void handleMessage(Message msg) {
             //super.handleMessage(msg);
             if(!isPebbleEnable){
-                waitQueue.clear();
                 return;
             }
             switch (msg.what){
                 case PREPARE_MESSAGE:{
-                    PebbleMessage dealPM=waitQueue.poll();
-                    if(dealPM==null){
+
+                    if(pebbleBusy){
+                        this.sendMessageDelayed(msg,30000);
                         return;
-                    }
-                    while(pebbleBusy){
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        Time nowTime=new Time();
-                        nowTime.setToNow();
-                        if( Math.abs(nowTime.toMillis(true)- busyBegin.toMillis(true))>MAX_WAITING_MILLIS){
-                            clean_SendQue();
+                    }else{
+                        if (need_delay){
+                            Time nowtime=new Time();
+                            nowtime.setToNow();
+                            long delay=nowtime.toMillis(false)-busyBegin.toMillis(false);
+                            if(delay<timeOut){
+                                this.sendMessageDelayed(msg,delay+50);
+                                return;
+                            }
                         }
                     }
-                    List<PebbleMessage> pages=splitPages(dealPM);
+                    List<PebbleMessage> pages=splitPages((PebbleMessage) msg.getData().getSerializable(MessageProcessingService.PROCEED_MSG));
                     split_message_to_packages_add_to_sendQue(pages);
                     sendMsgThreadHandler.sendEmptyMessage(SEND_MESSAGE);
                 }
@@ -645,7 +658,6 @@ public class PebbleCenter extends Service {
                 return;
             }
             pebbleBusy=true;
-            busyBegin.setToNow();
             if (appStatue==0) {
                 appStatue++;
                 PebbleKit.startAppOnPebble(_contex, Constants.PEBBLE_UUID);
@@ -665,12 +677,11 @@ public class PebbleCenter extends Service {
                         Constants.log(TAG_NAME,"sendQueue is empty! Can not send");
                         return;
                     }
-
-                }
                     this.post(sendToPebble);
+                }
                     break;
                 case SEND_NEXT_PAGE: {
-                    PebbleDictionary data=sendQueue.peekFirst();
+           //         PebbleDictionary data=sendQueue.peekFirst();
                     if(sendQueue.isEmpty()) {
                         Constants.log(TAG_NAME,"sendQueue is empty! Can not send");
                         return;
@@ -686,13 +697,18 @@ public class PebbleCenter extends Service {
                 {
                     PebbleDictionary callEnd=new PebbleDictionary();
                     callEnd.addUint8(ID_COMMAND,REMOTE_EXCUTE_CALL_END);
-                    clean_SendQue();
                     sendQueue.addFirst(callEnd);
-                    this.post(sendToPebble);
+                    this.postAtFrontOfQueue(sendToPebble);
                 }
                     break;
                 case SEND_CLOSE_APP:
                     this.post(closeApp);
+                    break;
+                case SEND_CALL_HOOK:
+                    PebbleDictionary callHook=new PebbleDictionary();
+                    callHook.addUint8(ID_COMMAND,REMOTE_EXCUTE_CALL_HOOK);
+                    sendQueue.addFirst(callHook);
+                    this.postAtFrontOfQueue(sendToPebble);
                     break;
             }
 
@@ -709,10 +725,15 @@ public class PebbleCenter extends Service {
             if (tmpPD.getUnsignedInteger(ID_PACKAGE_NUM).intValue() == tmpPD.getUnsignedInteger(ID_TOTAL_PACKAGES).intValue()) {
                 PebbleKit.sendDataToPebbleWithTransactionId(_contex, Constants.PEBBLE_UUID, tmpPD, TRANS_ID_END);
                 Constants.log(TAG_NAME,"Send last package.sendQueue length:" + String.valueOf(sendQueue.size()));
+                if(tmpPD.getUnsignedInteger(ID_COMMAND).byteValue()==REMOTE_EXCUTE_CONTINUE_MESSAGE ){
+                    busyBegin.setToNow();
+                }
             } else {
                 PebbleKit.sendDataToPebbleWithTransactionId(_contex, Constants.PEBBLE_UUID, tmpPD, TRANS_ID_COMMON);
                 Constants.log(TAG_NAME,"Send common package. sendQueue length:" + String.valueOf(sendQueue.size()));
+
             }
+
 
         }
     };

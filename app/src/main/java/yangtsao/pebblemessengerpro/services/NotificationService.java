@@ -1,6 +1,5 @@
 package yangtsao.pebblemessengerpro.services;
 
-import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -12,15 +11,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.accessibilityservice.AccessibilityService;
-import android.accessibilityservice.AccessibilityServiceInfo;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.PowerManager;
 import android.os.RemoteException;
-import android.preference.Preference;
 import android.provider.ContactsContract;
 import android.support.v4.content.LocalBroadcastManager;
-import android.telephony.PhoneNumberUtils;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.view.LayoutInflater;
@@ -35,17 +31,8 @@ import android.app.Notification;
 import android.os.Parcelable;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.widget.RemoteViews;
 import android.widget.TextView;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.prefs.PreferenceChangeEvent;
-import java.util.prefs.PreferenceChangeListener;
-
-import static android.content.Context.*;
 
 public class NotificationService extends AccessibilityService {
     private static final String LOG_TAG="NotificationService";
@@ -108,7 +95,12 @@ public class NotificationService extends AccessibilityService {
             }
         }
         if (no_ongoing_notifs) {
-            Parcelable parcelable = event.getParcelableData();
+            Parcelable parcelable;
+            if (event != null) {
+                parcelable = event.getParcelableData();
+            }else{
+                return;
+            }
             if (parcelable instanceof Notification) {
                 Notification notif = (Notification) parcelable;
                 Constants.log(
@@ -125,14 +117,15 @@ public class NotificationService extends AccessibilityService {
                 Constants.log(LOG_TAG, "Event is not a notification.");
             }
         }
-        PackageManager pm = getPackageManager();
         String eventPackageName;
+
         if (event.getPackageName() != null) {
             eventPackageName = event.getPackageName().toString();
         } else {
             Constants.log(LOG_TAG, "Can't get event package name. Returning.");
             return;
         }
+
         boolean found = false;
         for (String packageName : packages) {
             if (packageName.equalsIgnoreCase(eventPackageName)) {
@@ -178,7 +171,7 @@ public class NotificationService extends AccessibilityService {
     }
 
     private String getExtraBigData(Notification notification, String existing_text) {
-        RemoteViews views = null;
+        RemoteViews views;
         try {
             views = notification.bigContentView;
         } catch (NoSuchFieldError e) {
@@ -243,7 +236,7 @@ public class NotificationService extends AccessibilityService {
 
             if (v instanceof TextView) {
                 TextView tv = (TextView) v;
-                if (tv.getText().toString() == "..." || tv.getText().toString() == "�"
+                if (tv.getText().toString().equalsIgnoreCase("...") || tv.getText().toString().equalsIgnoreCase("�")
                         || isInteger(tv.getText().toString()) || existing_text.contains(tv.getText().toString().trim())) {
                     Constants.log(LOG_TAG, "Text is: " + tv.getText().toString()
                                 + " but I am going to skip this");
@@ -302,6 +295,9 @@ public class NotificationService extends AccessibilityService {
         };
         IntentFilter intentFilter=new IntentFilter(NotificationService.class.getName());
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(br,intentFilter);
+        MyPhoneListener phoneListener = new MyPhoneListener();
+        TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+        telephonyManager.listen(phoneListener, PhoneStateListener.LISTEN_CALL_STATE);
     }
     @Override
     public void onDestroy() {
@@ -320,10 +316,11 @@ public class NotificationService extends AccessibilityService {
             switch (state) {
 
                 case TelephonyManager.CALL_STATE_RINGING: {
+                    Constants.log(LOG_TAG,"A new call is coming:"+ incomingNumber);
                     Message msg = Message.obtain();
                     msg.what = MessageProcessingService.MSG_NEW_CALL;
                     Bundle b = new Bundle();
-                    if (incomingNumber != null && incomingNumber != "") {
+                    if (incomingNumber != null && !incomingNumber.isEmpty()) {
                         b.putString(MessageDbHandler.COL_CALL_NUMBER, incomingNumber);
                         b.putString(MessageDbHandler.COL_CALL_NAME,queryNameByNum(incomingNumber));
                     } else {
@@ -340,10 +337,10 @@ public class NotificationService extends AccessibilityService {
                     break;
                 case TelephonyManager.CALL_STATE_IDLE:
                 {
-                    Message msg=Message.obtain();
-                    msg.what=PebbleCenter.PEBBLE_CALL_IDLE;
+                    Message msg_idle=Message.obtain();
+                    msg_idle.what=PebbleCenter.PEBBLE_CALL_IDLE;
                     try {
-                        rPebbleCenterHandler.send(msg);
+                        rPebbleCenterHandler.send(msg_idle);
                     } catch (RemoteException e) {
                         e.printStackTrace();
                         Constants.log(LOG_TAG,"Error when sending message to PebbleCenter.");
@@ -355,7 +352,7 @@ public class NotificationService extends AccessibilityService {
 
                     break;
             }
-            ;
+
         }
         public  String queryNameByNum(String num) {
             Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(num));
