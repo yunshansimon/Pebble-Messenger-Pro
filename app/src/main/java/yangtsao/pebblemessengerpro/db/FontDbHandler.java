@@ -70,16 +70,15 @@ public class FontDbHandler extends SQLiteOpenHelper {
 
         new Thread(new Runnable() {
             private void addMultipleFontsx(List<Font> fonts, SQLiteDatabase db) {
-                StringBuffer b = new StringBuffer();
+                StringBuilder b = new StringBuilder();
 
                 Font first = fonts.get(0);
-                b.append("INSERT INTO '" + TABLE_HEX + "' " + "SELECT '" + first.getCodepoint() + "' AS '"
-                        + KEY_CODEPOINT + "', " + "'" + first.getHex() + "' AS '" + KEY_HEX + "' ");
+                b.append("INSERT INTO '" + TABLE_HEX + "' " + "SELECT '").append(first.getCodepoint()).append("' AS '").append(KEY_CODEPOINT).append("', ").append("'").append(first.getHex()).append("' AS '").append(KEY_HEX).append("' ");
 
                 fonts.remove(0);
 
                 for (Font f : fonts) {
-                    b.append("UNION SELECT '" + f.getCodepoint() + "', '" + f.getHex() + "' ");
+                    b.append("UNION SELECT '").append(f.getCodepoint()).append("', '").append(f.getHex()).append("' ");
                 }
 
                 db.execSQL(b.toString());
@@ -163,36 +162,7 @@ public class FontDbHandler extends SQLiteOpenHelper {
         _db.execSQL("DROP TABLE IF EXISTS " + TABLE_HEX);
         onCreate(_db);
     }
-    /**
-     * All CRUD(Create, Read, Update, Delete) Operations
-     */
 
-    // Adding new contact
-    public void addFont(Font font) {
-        List<Font> l = new ArrayList<Font>(1);
-        l.add(font);
-
-        addMultipleFonts(l);
-    }
-
-    public void addMultipleFonts(List<Font> fonts) {
-        // SQLiteDatabase db = this.getWritableDatabase();
-
-        addMultipleFonts(fonts, _db);
-    }
-
-    private void addMultipleFonts(List<Font> fonts, SQLiteDatabase db) {
-        ContentValues values = new ContentValues();
-
-        for (Font f : fonts) {
-            values.put(KEY_CODEPOINT, f.getCodepoint()); // Contact Name
-            values.put(KEY_HEX, f.getHex()); // Contact Phone
-        }
-
-        // Inserting Row
-        db.insertOrThrow(TABLE_HEX, null, values);
-
-    }
 
     // Getting single contact
     public Font getFont(String codepoint) {
@@ -216,43 +186,7 @@ public class FontDbHandler extends SQLiteOpenHelper {
         return null;
     }
 
-    // public boolean verifyIntegrity() {
-    // // Maybe db is generating, wait some time
-    // int waited = 0;
-    //
-    // while(DatabaseHandler.dirty && waited < 10000) {
-    // try {
-    // Thread t = Thread.currentThread();
-    // synchronized(t) {
-    // t.sleep(500);
-    // }
-    //
-    // waited += 500;
-    // } catch (InterruptedException e) { return false; }
-    // }
-    //
-    // String tables = " SELECT name FROM sqlite_master " +
-    // " WHERE type='table'             "
-    // + "   AND name LIKE '"+TABLE_HEX+"' ";
-    //
-    // if (_db.rawQuery(tables, null).getCount()<1) {
-    // return false;
-    // }
-    //
-    // String countQuery = "SELECT  * FROM " + TABLE_HEX;
-    //
-    // Cursor cursor = _db.rawQuery(countQuery, null);
-    // int cnt = cursor.getCount();
-    // cursor.close();
-    //
-    // // If the line count doesn't match, reload
-    // if (cnt != FILE_LINECOUNT) {
-    // onUpgrade(_db, 1, 1);
-    // return false;
-    // }
-    //
-    // return true;
-    // }
+
 
     public void open() throws SQLException {
         _db = this.getWritableDatabase();
@@ -263,62 +197,6 @@ public class FontDbHandler extends SQLiteOpenHelper {
     @Override
     public void close() {
         super.close();
-    }
-
-    // Getting All Contacts
-    public List<Font> getAllFonts() {
-        List<Font> fontList = new ArrayList<Font>();
-        // Select All Query
-        String selectQuery = "SELECT  * FROM " + TABLE_HEX;
-
-        // SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = _db.rawQuery(selectQuery, null);
-
-        // looping through all rows and adding to list
-        if (cursor.moveToFirst()) {
-            do {
-                Font font = new Font(cursor.getString(0), cursor.getString(1));
-
-                // Adding contact to list
-                fontList.add(font);
-            } while (cursor.moveToNext());
-        }
-        cursor.close();
-        // return contact list
-        return fontList;
-    }
-
-    // Updating single contact
-    public int updateFont(Font font) {
-        // SQLiteDatabase db = this.getWritableDatabase();
-
-        ContentValues values = new ContentValues();
-        values.put(KEY_CODEPOINT, font.getCodepoint());
-
-        // updating row
-        return _db.update(TABLE_HEX, values, KEY_CODEPOINT + " = ?", new String[] {
-                font.getCodepoint()
-        });
-    }
-
-    // Deleting single contact
-    public void deleteFont(Font font) {
-        // SQLiteDatabase db = this.getWritableDatabase();
-        _db.delete(TABLE_HEX, KEY_CODEPOINT + " = ?", new String[] {
-                font.getCodepoint()
-        });
-    }
-
-    // Getting contacts Count
-    public int getFontCount() {
-        String countQuery = "SELECT  * FROM " + TABLE_HEX;
-        // SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = _db.rawQuery(countQuery, null);
-        int cnt = cursor.getCount();
-        cursor.close();
-
-        // return count
-        return cnt;
     }
 
 }

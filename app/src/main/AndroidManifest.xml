@@ -28,7 +28,6 @@
                 android:resource="@xml/accessibility_service_config" />
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
-                <action android:name="android.intent.action.PHONE_STATE" />
             </intent-filter>
         </service>
         <service
@@ -41,6 +40,11 @@
             android:enabled="true"
             android:exported="true" >
         </service>
+        <receiver android:name=".receivers.CallStateHandler">
+            <intent-filter>
+                <action android:name="android.intent.action.PHONE_STATE" />
+            </intent-filter>
+        </receiver>
 
         <activity
             android:name=".activities.NavigationActivity"

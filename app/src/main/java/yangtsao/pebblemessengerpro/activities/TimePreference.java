@@ -73,7 +73,7 @@ public class TimePreference extends DialogPreference {
 
     @Override
     protected void onSetInitialValue(boolean restoreValue, Object defaultValue) {
-        String time = null;
+        String time;
 
         if (restoreValue) {
             if (defaultValue == null) {

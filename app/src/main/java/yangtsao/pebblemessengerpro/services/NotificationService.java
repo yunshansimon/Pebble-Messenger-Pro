@@ -6,8 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.accessibilityservice.AccessibilityService;
@@ -15,16 +13,12 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.PowerManager;
 import android.os.RemoteException;
-import android.provider.ContactsContract;
 import android.support.v4.content.LocalBroadcastManager;
-import android.telephony.PhoneStateListener;
-import android.telephony.TelephonyManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityEvent;
 import yangtsao.pebblemessengerpro.Constants;
-import yangtsao.pebblemessengerpro.R;
 import yangtsao.pebblemessengerpro.db.MessageDbHandler;
 
 import android.app.Notification;
@@ -34,29 +28,13 @@ import android.preference.PreferenceManager;
 import android.widget.RemoteViews;
 import android.widget.TextView;
 
-public class NotificationService extends AccessibilityService {
+public class NotificationService extends AccessibilityService{
     private static final String LOG_TAG="NotificationService";
 
-    private boolean   no_ongoing_notifs     = false;
     private boolean   notifScreenOn         = true;
     private String[]  packages              = null;
-    private boolean   callMessengerEnable   = false;
 
     private Messenger rMessageProcessHandler=null;
-    private Messenger rPebbleCenterHandler=null;
-
-    private final ServiceConnection connToPebbleCenter=new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            rPebbleCenterHandler=new Messenger(iBinder);
-            Constants.log(LOG_TAG,"Connect to PebbleCenterHandler!");
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            rPebbleCenterHandler=null;
-        }
-    };
 
     private final ServiceConnection connToMessageProcess =new ServiceConnection() {
         @Override
@@ -77,19 +55,23 @@ public class NotificationService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
+        if(event==null) return;
+        Constants.log(LOG_TAG,"New Access Event:"+ String.valueOf(event.getEventType()));
         if(event.getEventType()!= AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED){
+
             return;
         }
         PowerManager powMan = (PowerManager) this.getSystemService(POWER_SERVICE);
         if (!notifScreenOn && powMan.isScreenOn()) {
             return;
         }
-        Notification notif=(Notification) event.getParcelableData();
-        if (no_ongoing_notifs) {
-           if((notif.flags & Notification.FLAG_ONGOING_EVENT)==Notification.FLAG_ONGOING_EVENT){
-               return;
-           }
-        }
+        Parcelable parcelable=event.getParcelableData();
+        if(!(parcelable instanceof Notification)) return;
+        Notification notif=(Notification) parcelable;
+       if((notif.flags & Notification.FLAG_ONGOING_EVENT)==Notification.FLAG_ONGOING_EVENT){
+           return;
+       }
+
         String eventPackageName;
 
         if (event.getPackageName() != null) {
@@ -116,13 +98,9 @@ public class NotificationService extends AccessibilityService {
         // strip the first and last characters which are [ and ]
         notificationText = notificationText.substring(1, notificationText.length() - 1);
         if (!eventPackageName.contentEquals("com.android.mms")) {
-
             Constants.log(LOG_TAG, "Fetching extras from notification");
-            Parcelable parcelable = event.getParcelableData();
-            if (parcelable instanceof Notification) {
-                String str = getExtraBigData((Notification) parcelable, notificationText);
-                notificationText += "\n" + str;
-            }
+            String str = getExtraBigData((Notification) parcelable, notificationText);
+            notificationText += "\n" + str;
         }
         if (notificationText.length() == 0) {
             return;
@@ -237,20 +215,12 @@ public class NotificationService extends AccessibilityService {
     private void loadPrefs() {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         packages = sharedPref.getString(Constants.PREFERENCE_PACKAGE_LIST, "").split(",");
-        no_ongoing_notifs = sharedPref.getBoolean(Constants.PREFERENCE_NO_ONGOING_NOTIF, false);
         notifScreenOn = sharedPref.getBoolean(Constants.PREFERENCE_NOTIF_SCREEN_ON, true);
-        callMessengerEnable=sharedPref.getBoolean(Constants.PREFERENCE_CALL_ENABLE,false);
     }
     @Override
     public void onInterrupt() {
 
     }
-  /*  @Override
-    public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-    */
 
     @Override
     public void onServiceConnected() {
@@ -258,110 +228,22 @@ public class NotificationService extends AccessibilityService {
         loadPrefs();
         bindService(new Intent(this, MessageProcessingService.class), connToMessageProcess,
                 Context.BIND_AUTO_CREATE);
-        bindService(new Intent(this,PebbleCenter.class),connToPebbleCenter,Context.BIND_AUTO_CREATE);
         BroadcastReceiver br= new BroadcastReceiver(){
             @Override
             public void onReceive(Context context, Intent intent) {
+
                 loadPrefs();
             }
         };
         IntentFilter intentFilter=new IntentFilter(NotificationService.class.getName());
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(br,intentFilter);
-
- /*       try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        MyPhoneListener phoneListener = new MyPhoneListener();
-        TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
-        telephonyManager.listen(phoneListener, PhoneStateListener.LISTEN_CALL_STATE);
-        */
     }
     @Override
     public void onDestroy() {
-        unbindService(connToPebbleCenter);
         unbindService(connToMessageProcess);
 
     }
 
-    private class MyPhoneListener extends PhoneStateListener {
-        @Override
-        public void onCallStateChanged(int state, String incomingNumber) {
-            if (!callMessengerEnable) {
-                return;
-            }
-
-            switch (state) {
-
-                case TelephonyManager.CALL_STATE_RINGING: {
-                    Constants.log(LOG_TAG,"A new call is coming:"+ incomingNumber);
-                    Message msg = Message.obtain();
-                    msg.what = MessageProcessingService.MSG_NEW_CALL;
-                    Bundle b = new Bundle();
-                    if (incomingNumber != null && !incomingNumber.isEmpty()) {
-                        b.putString(MessageDbHandler.COL_CALL_NUMBER, incomingNumber);
-                        b.putString(MessageDbHandler.COL_CALL_NAME,queryNameByNum(incomingNumber));
-                    } else {
-                        b.putString(MessageDbHandler.COL_CALL_NUMBER, "0");
-                        b.putString(MessageDbHandler.COL_CALL_NAME,getString(R.string.notificationservice_privateNumber));
-                    }
-                    msg.setData(b);
-                    try {
-                        rMessageProcessHandler.send(msg);
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
-                }
-                    break;
-                case TelephonyManager.CALL_STATE_IDLE:
-                {
-                    Message msg_idle=Message.obtain();
-                    msg_idle.what=PebbleCenter.PEBBLE_CALL_IDLE;
-                    if(rPebbleCenterHandler==null) Constants.log(LOG_TAG,"rPebbleCenterHandler is null!");
-                    try {
-                        rPebbleCenterHandler.send(msg_idle);
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                        Constants.log(LOG_TAG,"Error when sending message to PebbleCenter.");
-                    }
-                }
-                    break;
-
-                case TelephonyManager.CALL_STATE_OFFHOOK:
-                {
-                    Message msg_hook=Message.obtain();
-                    msg_hook.what=PebbleCenter.PEBBLE_CALL_HOOK;
-                    try {
-                        rPebbleCenterHandler.send(msg_hook);
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                        Constants.log(LOG_TAG,"Error when sending hook message to PebbleCenter.");
-                    }
-                }
-                    break;
-            }
-
-        }
-        public  String queryNameByNum(String num) {
-            Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(num));
-
-            Cursor cursor = getContentResolver().query(uri, new String[] {
-                    ContactsContract.PhoneLookup.DISPLAY_NAME
-            }, null, null, null);
-            String nameString=getString(R.string.notificationservice_unknownperson);
-            if (cursor!=null){
-                if (cursor.moveToFirst()){
-                    int columnNumberId=cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME);
-                    nameString=cursor.getString(columnNumberId);
-                }
-                cursor.close();
-            }
-            return nameString;
-            }
-
-
-    }
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         return START_STICKY;

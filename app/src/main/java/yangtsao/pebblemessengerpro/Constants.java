@@ -22,7 +22,6 @@ public class Constants {
     //----------------------------------------
 
     // Shared preferences
-    public static final String  PREFERENCE_NO_ONGOING_NOTIF           = "pref_no_ongoing_notif";
     public static final String  PREFERENCE_PACKAGE_LIST               = "pref_package_list";
     public static final String  PREFERENCE_NOTIF_SCREEN_ON            = "pref_notif_screen_on";
     public static final String  PREFERENCE_MESSAGE_SCALE              = "pref_message_scale";
@@ -40,7 +39,7 @@ public class Constants {
     public static final int MESSAGE_SCALE_SMALL=0;
     public static final int MESSAGE_SCALE_MID=1;
     public static final int MESSAGE_SCALE_LARGE=2;
-    public static final int MAX_PACKAGE_LENGTH=120;
+//    public static final int MAX_PACKAGE_LENGTH=120;
     public static final int SMALL_LINE_CONTAIN_CHARS=16;
     public static final int SMALL_PAGE_CONTAIN_LINES=9;
     public static final int MID_LINE_CONTAIN_CHARS=12;
@@ -48,6 +47,14 @@ public class Constants {
     public static final int LARGE_LINE_CONTAIN_CHARS=9;
     public static final int LARGE_PAGE_CONTAIN_LINES=4;
     //-----------------------------------------
+
+    public static final String BROADCAST_COMMAND="command";
+    public static final int BROADCAST_PREFER_CHANGED=1;
+    public static final int BROADCAST_CALL_INCOMING=2;
+    public static final int BROADCAST_CALL_IDLE=3;
+    public static final int BROADCAST_CALL_HOOK=4;
+    public static final String BROADCAST_PHONE_NUM="phonenum";
+    public static final String BROADCAST_NAME="name";
 
     //Pebble app communication
     public static final UUID PEBBLE_UUID= UUID.fromString("2d0b18b1-0ee6-41ca-9579-a0c4c6568d93");

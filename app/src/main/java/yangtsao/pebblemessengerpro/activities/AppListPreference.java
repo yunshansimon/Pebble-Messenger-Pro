@@ -9,6 +9,8 @@ import android.content.pm.ResolveInfo;
 import android.os.AsyncTask;
 import android.preference.DialogPreference;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,6 +35,7 @@ import java.util.List;
 
 import yangtsao.pebblemessengerpro.Constants;
 import yangtsao.pebblemessengerpro.R;
+import yangtsao.pebblemessengerpro.services.NotificationService;
 
 /**
  * Created by yunshansimon on 14-8-28.
@@ -61,7 +64,7 @@ public class AppListPreference extends DialogPreference {
     }
 
     @Override
-    protected void onBindDialogView(View view) {
+    protected void onBindDialogView(@NonNull View view) {
         lvPackageInfo=(ListView)view.findViewById(R.id.listView);
         pbInworking=(ProgressBar) view.findViewById(R.id.progressBar);
         new LoadAppsTask().execute(LoadAppsTask.SORT_BY_NAME);
@@ -283,22 +286,16 @@ public class AppListPreference extends DialogPreference {
                     }
                 }
             }
-            PreferenceManager pm=getPreferenceManager();
-            SharedPreferences.Editor editor = pm.getDefaultSharedPreferences(_context).edit();
+            SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(_context).edit();
             editor.putString
                     (Constants.PREFERENCE_PACKAGE_LIST, selectedPackages);
 
             editor.apply();
-            File watchFile = new File(_context.getFilesDir() + "PrefsChanged.none");
-            if (!watchFile.exists()) {
-                try {
-                    watchFile.createNewFile();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            }
-            watchFile.setLastModified(System.currentTimeMillis());
+
+            Intent intent=new Intent(NotificationService.class.getName());
+            intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_PREFER_CHANGED);
+            LocalBroadcastManager.getInstance(_context).sendBroadcast(intent);
+
         }
         super.onDialogClosed(positiveResult);
     }

@@ -16,11 +16,7 @@
             android:defaultValue="10000"
             android:entries="@array/pref_notif_timeout"
             android:entryValues="@array/pref_notif_timeout_values"/>
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="pref_no_ongoing_notif"
-            android:summary="@string/pref_no_ongoing_notif_summ"
-            android:title="@string/pref_no_ongoing_notif" />
+
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="pref_notif_screen_on"

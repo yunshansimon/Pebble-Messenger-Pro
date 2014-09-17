@@ -57,8 +57,6 @@ public class CharacterMatrix {
 
                 byte end = (byte) (value & 0xFF);
 
-                end = (byte) (~end & 0xff);
-
                 end = (byte) (Integer.reverse(end) >>> 24);
 
                 this._byteList.add(end);

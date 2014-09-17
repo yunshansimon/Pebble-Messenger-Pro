@@ -153,15 +153,15 @@ public class MessageDbHandler extends SQLiteOpenHelper {
                     nowTime.setToNow();
                     long diff=(nowTime.toMillis(true)-rTime.toMillis(true))/1000;
                     if ((int)(diff/(24*3600))>0){
-                        messageTable.append("[>" + String.valueOf((int)(diff/(24*3600))) + " Days]");
+                        messageTable.append("[>").append(String.valueOf((int) (diff / (24 * 3600)))).append(" Days]");
                     }else if ((int)(diff/3600)>0){
-                        messageTable.append("[>" + String.valueOf((int)(diff/(3600))) + " Hours]");
+                        messageTable.append("[>").append(String.valueOf((int) (diff / (3600)))).append(" Hours]");
                     }else if ((int)(diff/60)>0){
-                        messageTable.append("[>" + String.valueOf((int)(diff/(60))) + " Mins]");
+                        messageTable.append("[>").append(String.valueOf((int) (diff / (60)))).append(" Mins]");
                     }else {
                         messageTable.append("[<1 Mins]");
                     }
-                    messageTable.append(" " + cursor.getString(2) + cursor.getString(4));
+                    messageTable.append(" ").append(cursor.getString(2)).append(cursor.getString(4));
                     messageTable.append("\n");
                 }else if (counter>toPos){
                    break;
@@ -223,7 +223,11 @@ public class MessageDbHandler extends SQLiteOpenHelper {
         return content;
     }
 
-    public void cleanAll(){
-        onUpgrade(_db,VERSION,VERSION);
+    public void rebuildAll(){
+        _db.execSQL("DROP TABLE IF EXISTS " + TABLE_MESSAGE_NAME);
+        _db.execSQL("DROP TABLE IF EXISTS " + TABLE_CALL_NAME);
+
+        // Create tables again
+        onCreate(_db);
     }
 }

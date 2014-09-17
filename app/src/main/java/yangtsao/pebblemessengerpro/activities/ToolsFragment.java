@@ -6,7 +6,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.app.FragmentManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -18,6 +17,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -89,6 +89,7 @@ public class ToolsFragment extends Fragment {
         toolsView.findViewById(R.id.button_rebuild_font).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 Toast.makeText(_context, R.string.tools_toast_rebuild_font, Toast.LENGTH_LONG).show();
                 fd.rebuild();
             }
@@ -96,8 +97,9 @@ public class ToolsFragment extends Fragment {
         toolsView.findViewById(R.id.button_clean_message_cache).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 Toast.makeText(_context, R.string.tools_toast_clean_cache, Toast.LENGTH_LONG).show();
-                md.cleanAll();
+                md.rebuildAll();
             }
         });
         toolsView.findViewById(R.id.button_test_message).setOnClickListener(new View.OnClickListener() {
@@ -120,7 +122,7 @@ public class ToolsFragment extends Fragment {
                 _context.stopService(new Intent(getActivity(), NotificationService.class));
                 _context.stopService(new Intent(getActivity(), MessageProcessingService.class));
                 _context.stopService(new Intent(getActivity(), PebbleCenter.class));
-                Toast.makeText(_context,R.string.tools_toast_restart_service,Toast.LENGTH_LONG);
+                Toast.makeText(_context,R.string.tools_toast_restart_service,Toast.LENGTH_LONG).show();
             }
         });
 
@@ -131,9 +133,27 @@ public class ToolsFragment extends Fragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         ((NavigationActivity) activity).onSectionAttached(positionIndex);
-        _context=activity.getApplicationContext();
-        _context.bindService(new Intent(activity, MessageProcessingService.class), connToMessageProcess,
+        _context=activity.getBaseContext();
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        _context.bindService(new Intent(getActivity(), MessageProcessingService.class), connToMessageProcess,
                 Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        _context.unbindService(connToMessageProcess);
+    }
+
+    @Override
+    public void onDetach() {
+
+        super.onDetach();
     }
 
     public static class SendMessageFragment extends DialogFragment{
@@ -202,29 +222,34 @@ public class ToolsFragment extends Fragment {
     }
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Message msg=Message.obtain();
-        Bundle b=new Bundle();
+
         switch (requestCode){
-            case REQUEST_SEND_MESSAGE:
-                msg.what=MessageProcessingService.MSG_NEW_MESSAGE;
+            case REQUEST_SEND_MESSAGE: {
+                Message msg=Message.obtain();
+                Bundle b=new Bundle();
+                msg.what = MessageProcessingService.MSG_NEW_MESSAGE;
                 b.putString(MessageDbHandler.COL_MESSAGE_APP, LOG_TAG);
-                b.putString(MessageDbHandler.COL_MESSAGE_CONTENT,data.getStringExtra(MESSAGE_BODY));
-                Toast.makeText(_context,R.string.tools_toast_send_message,Toast.LENGTH_LONG);
+                b.putString(MessageDbHandler.COL_MESSAGE_CONTENT, data.getStringExtra(MESSAGE_BODY));
+                try {
+                    msg.setData(b);
+                    rMessageProcessHandler.send(msg);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                    Constants.log(LOG_TAG,"Error when sending message to MessageProcessingService.");
+                }
+                Toast.makeText(_context, R.string.tools_toast_send_message, Toast.LENGTH_LONG).show();
+            }
                 break;
             case REQUEST_SEND_CALL:
-                msg.what=MessageProcessingService.MSG_NEW_CALL;
-                b.putString(MessageDbHandler.COL_CALL_NUMBER,data.getStringExtra(CALL_NUM));
-                b.putString(MessageDbHandler.COL_CALL_NAME,data.getStringExtra(CALL_NAME));
-                Toast.makeText(_context,R.string.tools_toast_send_call,Toast.LENGTH_LONG);
+                Intent inner_intent=new Intent(MessageProcessingService.class.getName());
+                inner_intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_CALL_INCOMING);
+                inner_intent.putExtra(Constants.BROADCAST_PHONE_NUM,data.getStringExtra(CALL_NUM));
+                inner_intent.putExtra(Constants.BROADCAST_NAME,data.getStringExtra(CALL_NAME));
+                LocalBroadcastManager.getInstance(getActivity().getBaseContext()).sendBroadcast(inner_intent);
+                Toast.makeText(_context,R.string.tools_toast_send_call,Toast.LENGTH_LONG).show();
                 break;
         }
-        try {
-            msg.setData(b);
-            rMessageProcessHandler.send(msg);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-            Constants.log(LOG_TAG,"Error when sending message to MessageProcessingService.");
-        }
+
         super.onActivityResult(requestCode, resultCode, data);
     }
 

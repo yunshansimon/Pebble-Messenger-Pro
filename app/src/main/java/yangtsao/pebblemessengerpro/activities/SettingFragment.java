@@ -3,22 +3,15 @@ package yangtsao.pebblemessengerpro.activities;
 
 
 import android.app.Activity;
-import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 
-import java.io.File;
-import java.io.IOException;
-import java.security.Key;
-import java.util.prefs.PreferenceChangeEvent;
-import java.util.prefs.PreferenceChangeListener;
 
 import yangtsao.pebblemessengerpro.Constants;
 import yangtsao.pebblemessengerpro.R;
@@ -67,33 +60,51 @@ private static final int positionIndex=1;
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
         Constants.log(TAG_NAME,"Preferenc key:" + s + "changed.");
 
-        if (s.equalsIgnoreCase(Constants.PREFERENCE_NO_ONGOING_NOTIF)) {
-            LocalBroadcastManager.getInstance(_context).sendBroadcast(new Intent(NotificationService.class.getName()));
-        }else if (s.equalsIgnoreCase(Constants.PREFERENCE_PACKAGE_LIST)) {
-            LocalBroadcastManager.getInstance(_context).sendBroadcast(new Intent(NotificationService.class.getName()));
-        }else if(s.equalsIgnoreCase(Constants.PREFERENCE_NOTIF_SCREEN_ON)){
-            LocalBroadcastManager.getInstance(_context).sendBroadcast(new Intent(NotificationService.class.getName()));
+        if(s.equalsIgnoreCase(Constants.PREFERENCE_NOTIF_SCREEN_ON)){
+            Intent intent=new Intent(NotificationService.class.getName());
+            intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_PREFER_CHANGED);
+            LocalBroadcastManager.getInstance(_context).sendBroadcast(intent);
         }else if(s.equalsIgnoreCase(Constants.PREFERENCE_MESSAGE_SCALE)){
-            LocalBroadcastManager.getInstance(_context).sendBroadcast(new Intent(MessageProcessingService.class.getName()));
-            LocalBroadcastManager.getInstance(_context).sendBroadcast(new Intent(PebbleCenter.class.getName()));
-        }else if(s.equalsIgnoreCase(Constants.PREFERENCE_CALL_ENABLE)){
-            LocalBroadcastManager.getInstance(_context).sendBroadcast(new Intent(NotificationService.class.getName()));
-            LocalBroadcastManager.getInstance(_context).sendBroadcast(new Intent(PebbleCenter.class.getName()));
-        }else if(s.equalsIgnoreCase(Constants.PREFERENCE_CALL_QUIET)){
-            LocalBroadcastManager.getInstance(_context).sendBroadcast(new Intent(MessageProcessingService.class.getName()));
-        }else if(s.equalsIgnoreCase(Constants.PREFERENCE_CALL_SMS_SHORT)){
-            LocalBroadcastManager.getInstance(_context).sendBroadcast(new Intent(PebbleCenter.class.getName()));
-        }else if(s.equalsIgnoreCase(Constants.PREFERENCE_CALL_SMS_LONG)){
-            LocalBroadcastManager.getInstance(_context).sendBroadcast(new Intent(PebbleCenter.class.getName()));
-        }else if(s.equalsIgnoreCase(Constants.PREFERENCE_QUIET_HOURS)){
-            LocalBroadcastManager.getInstance(_context).sendBroadcast(new Intent(MessageProcessingService.class.getName()));
-        }else if(s.equalsIgnoreCase(Constants.PREFERENCE_QUIET_HOURS_AFTER)){
-            LocalBroadcastManager.getInstance(_context).sendBroadcast(new Intent(MessageProcessingService.class.getName()));
-        }else if(s.equalsIgnoreCase(Constants.PREFERENCE_QUIET_HOURS_BEFORE)){
-            LocalBroadcastManager.getInstance(_context).sendBroadcast(new Intent(MessageProcessingService.class.getName()));
-        }else if(s.equalsIgnoreCase(Constants.PREFERENCE_MIN_NOTIFICATION_WAIT)){
-            LocalBroadcastManager.getInstance(_context).sendBroadcast(new Intent(PebbleCenter.class.getName()));
+            Intent intent=new Intent(MessageProcessingService.class.getName());
+            intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_PREFER_CHANGED);
+            LocalBroadcastManager.getInstance(_context).sendBroadcast(intent);
 
+            intent=new Intent(PebbleCenter.class.getName());
+            intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_PREFER_CHANGED);
+            LocalBroadcastManager.getInstance(_context).sendBroadcast(intent);
+        }else if(s.equalsIgnoreCase(Constants.PREFERENCE_CALL_ENABLE)){
+            Intent intent=new Intent(PebbleCenter.class.getName());
+            intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_PREFER_CHANGED);
+            LocalBroadcastManager.getInstance(_context).sendBroadcast(intent);
+
+        }else if(s.equalsIgnoreCase(Constants.PREFERENCE_CALL_QUIET)){
+            Intent intent=new Intent(MessageProcessingService.class.getName());
+            intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_PREFER_CHANGED);
+            LocalBroadcastManager.getInstance(_context).sendBroadcast(intent);
+        }else if(s.equalsIgnoreCase(Constants.PREFERENCE_CALL_SMS_SHORT)){
+            Intent intent=new Intent(PebbleCenter.class.getName());
+            intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_PREFER_CHANGED);
+            LocalBroadcastManager.getInstance(_context).sendBroadcast(intent);
+        }else if(s.equalsIgnoreCase(Constants.PREFERENCE_CALL_SMS_LONG)){
+            Intent intent=new Intent(PebbleCenter.class.getName());
+            intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_PREFER_CHANGED);
+            LocalBroadcastManager.getInstance(_context).sendBroadcast(intent);
+        }else if(s.equalsIgnoreCase(Constants.PREFERENCE_QUIET_HOURS)){
+            Intent intent=new Intent(MessageProcessingService.class.getName());
+            intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_PREFER_CHANGED);
+            LocalBroadcastManager.getInstance(_context).sendBroadcast(intent);
+        }else if(s.equalsIgnoreCase(Constants.PREFERENCE_QUIET_HOURS_AFTER)){
+            Intent intent=new Intent(MessageProcessingService.class.getName());
+            intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_PREFER_CHANGED);
+            LocalBroadcastManager.getInstance(_context).sendBroadcast(intent);
+        }else if(s.equalsIgnoreCase(Constants.PREFERENCE_QUIET_HOURS_BEFORE)){
+            Intent intent=new Intent(MessageProcessingService.class.getName());
+            intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_PREFER_CHANGED);
+            LocalBroadcastManager.getInstance(_context).sendBroadcast(intent);
+        }else if(s.equalsIgnoreCase(Constants.PREFERENCE_MIN_NOTIFICATION_WAIT)){
+            Intent intent=new Intent(PebbleCenter.class.getName());
+            intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_PREFER_CHANGED);
+            LocalBroadcastManager.getInstance(_context).sendBroadcast(intent);
         }
 
     }

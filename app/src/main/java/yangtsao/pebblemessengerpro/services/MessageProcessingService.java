@@ -1,6 +1,6 @@
 package yangtsao.pebblemessengerpro.services;
 
-import android.app.Application;
+
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -16,21 +16,16 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
-import android.preference.Preference;
+
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.format.Time;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Deque;
 import java.util.GregorianCalendar;
-import java.util.prefs.PreferenceChangeEvent;
-import java.util.prefs.PreferenceChangeListener;
 
 import yangtsao.pebblemessengerpro.Constants;
 import yangtsao.pebblemessengerpro.R;
@@ -48,7 +43,7 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
     private static final String TAG_NAME ="MessageProcessingService";
 
     public static final int MSG_NEW_MESSAGE        =0;
-    public static final int MSG_NEW_CALL           =1;
+
     public static final int MSG_MESSAGE_READY      =2;
     public static final int MSG_CALL_READY         =3;
     public static final int MSG_GET_MESSAGE_TABLE  =4;
@@ -72,14 +67,12 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
 
     public Messenger mMessenger;
     private Handler processHandler;
-    private Thread proceedthread;
     private Handler messageHandler;
     private boolean   quiet_hours           = false;
     private Calendar quiet_hours_before    = null;
     private Calendar      quiet_hours_after     = null;
     private boolean   callQuietEnable       = false;
     private int fChars;  //line contain chars
-    private int fLines;  //page contain lines
 
     private Messenger rPebbleCenter =null;
     private final ServiceConnection connToPebbleCenter =new ServiceConnection() {
@@ -107,7 +100,7 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
         super.onCreate();
 
         loadPrefs();
-        proceedthread=new ProcessThread();
+        Thread proceedthread = new ProcessThread();
         proceedthread.start();
         messageHandler=new MessageHandler(Looper.getMainLooper());
         mMessenger=new Messenger(messageHandler);
@@ -121,7 +114,42 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
         BroadcastReceiver br= new BroadcastReceiver(){
             @Override
             public void onReceive(Context context, Intent intent) {
-                loadPrefs();
+                int command=intent.getIntExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_PREFER_CHANGED);
+                switch (command){
+                    case Constants.BROADCAST_PREFER_CHANGED:
+                        loadPrefs();
+                        break;
+                    case Constants.BROADCAST_CALL_INCOMING:
+                        String number=intent.getStringExtra(Constants.BROADCAST_PHONE_NUM);
+                        String name=intent.getStringExtra(Constants.BROADCAST_NAME);
+                        if (callQuietEnable) {
+                            Calendar c = Calendar.getInstance();
+                            Calendar now = new GregorianCalendar(0, 0, 0, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE));
+                            Constants.log(TAG_NAME, "Checking quiet hours. Now: " + now.toString() + " vs "
+                                    + quiet_hours_before.toString() + " and " + quiet_hours_after.toString());
+                            if (now.before(quiet_hours_before) || now.after(quiet_hours_after)) {
+                                Constants.log(TAG_NAME, "Time is before or after the quiet hours time. Returning.");
+                                addNewCall(number,name,MessageDbHandler.NEW_ICON);
+                            } else {
+                                Bundle b=new Bundle();
+                                b.putLong(MessageDbHandler.COL_CALL_ID, addNewCall(number,name,MessageDbHandler.OLD_ICON));
+                                b.putString(MessageDbHandler.COL_CALL_NUMBER, number);
+                                b.putString(MessageDbHandler.COL_CALL_NAME,name);
+                                Message innerMsg=processHandler.obtainMessage(INNER_CALL_PROCEED);
+                                innerMsg.setData(b);
+                                processHandler.sendMessage(innerMsg);
+                            }
+                        }else{
+                            Bundle b=new Bundle();
+                            b.putLong(MessageDbHandler.COL_CALL_ID, addNewCall(number,name,MessageDbHandler.OLD_ICON));
+                            b.putString(MessageDbHandler.COL_CALL_NUMBER, number);
+                            b.putString(MessageDbHandler.COL_CALL_NAME,name);
+                            Message innerMsg=processHandler.obtainMessage(INNER_CALL_PROCEED);
+                            innerMsg.setData(b);
+                            processHandler.sendMessage(innerMsg);
+                        }
+                        break;
+                }
             }
         };
         IntentFilter intentFilter=new IntentFilter(MessageProcessingService.class.getName());
@@ -184,30 +212,7 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
                         processHandler.sendMessage(innerMsg);
                     }
                     break;
-                case MSG_NEW_CALL:
-                    if (callQuietEnable) {
-                        Calendar c = Calendar.getInstance();
-                        Calendar now = new GregorianCalendar(0, 0, 0, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE));
-                        Constants.log(TAG_NAME, "Checking quiet hours. Now: " + now.toString() + " vs "
-                                + quiet_hours_before.toString() + " and " + quiet_hours_after.toString());
-                        if (now.before(quiet_hours_before) || now.after(quiet_hours_after)) {
-                            Constants.log(TAG_NAME, "Time is before or after the quiet hours time. Returning.");
-                            addNewCall(msg.getData(),MessageDbHandler.NEW_ICON);
-                        } else {
-                            Bundle b=msg.getData();
-                            b.putLong(MessageDbHandler.COL_CALL_ID, addNewCall(msg.getData(),MessageDbHandler.OLD_ICON));
-                            Message innerMsg=processHandler.obtainMessage(INNER_CALL_PROCEED);
-                            innerMsg.setData(b);
-                            processHandler.sendMessage(innerMsg);
-                        }
-                    }else{
-                        Bundle b=msg.getData();
-                        b.putLong(MessageDbHandler.COL_CALL_ID, addNewCall(msg.getData(),MessageDbHandler.OLD_ICON));
-                        Message innerMsg=processHandler.obtainMessage(INNER_CALL_PROCEED);
-                        innerMsg.setData(b);
-                        processHandler.sendMessage(innerMsg);
-                    }
-                    break;
+
                 case MSG_MESSAGE_READY: {
                     Message msgToPebble = Message.obtain();
                     msgToPebble.what = PebbleCenter.PEBBLE_SEND_MESSAGE;
@@ -284,7 +289,7 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
                     processHandler.sendMessage(innerMsg);
                     break;
                 case MSG_CLEAN:
-                    mdb.cleanAll();
+                    mdb.rebuildAll();
                     break;
                 case MSG_READ:
                     Constants.log(TAG_NAME,"Seek and read msg"+ msg.getData().getString(MessageDbHandler.COL_MESSAGE_ID));
@@ -305,11 +310,7 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
             return mdb.addMessage(nowTime,b.getString(MessageDbHandler.COL_MESSAGE_APP),b.getString(MessageDbHandler.COL_MESSAGE_CONTENT),icon);
         }
 
-        private Long addNewCall(Bundle b , String icon) {
-            Time nowTime=new Time();
-            nowTime.setToNow();
-            return mdb.addCall(nowTime,b.getString(MessageDbHandler.COL_CALL_NUMBER),b.getString(MessageDbHandler.COL_CALL_NAME),icon);
-        }
+
     }
 
     class InnerThreadHandler extends Handler{
@@ -608,15 +609,12 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
         switch (Integer.parseInt(sharedPref.getString(Constants.PREFERENCE_MESSAGE_SCALE,String.valueOf(Constants.MESSAGE_SCALE_SMALL)))){
             case Constants.MESSAGE_SCALE_SMALL:
                 fChars=Constants.SMALL_LINE_CONTAIN_CHARS;
-                fLines=Constants.SMALL_PAGE_CONTAIN_LINES;
                 break;
             case Constants.MESSAGE_SCALE_MID:
                 fChars=Constants.MID_LINE_CONTAIN_CHARS;
-                fLines=Constants.MID_PAGE_CONTAIN_LINES;
                 break;
             case Constants.MESSAGE_SCALE_LARGE:
                 fChars=Constants.LARGE_LINE_CONTAIN_CHARS;
-                fLines=Constants.LARGE_PAGE_CONTAIN_LINES;
                 break;
         }
     }
@@ -626,5 +624,9 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
         return START_STICKY;
     }
 
-
+    private Long addNewCall(String number, String name , String icon) {
+        Time nowTime=new Time();
+        nowTime.setToNow();
+        return mdb.addCall(nowTime,number ,name,icon);
+    }
 }

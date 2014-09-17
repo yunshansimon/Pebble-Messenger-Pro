@@ -46,10 +46,6 @@ public class PebbleCall implements Serializable {
     }
 
 
-    public PebbleCall(Deque<CharacterMatrix> characterQueue) {
-        this._characterQueue = characterQueue;
-    }
-
     public PebbleCall() {
         this._characterQueue = new ArrayDeque<CharacterMatrix>();
     }

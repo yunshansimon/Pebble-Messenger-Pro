@@ -18,6 +18,8 @@ public class FontDbLoadNotifier {
 
     private final Context _context;
 
+    private int pro_now=0;
+
     public FontDbLoadNotifier(Context context) {
         mBuilder = new Notification.Builder(context).setSmallIcon(R.drawable.ic_launcher)
                 .setContentTitle(context.getString(R.string.app_name))
@@ -32,13 +34,16 @@ public class FontDbLoadNotifier {
     public void changeProgress(int progress, int max) {
         // mBuilder.setContentIntent(PendingIntent.getActivity(context, 0, new
         // Intent(), 0));
-        mBuilder.setProgress(max, progress, false);
-
-        // mId allows you to update the notification later on.
-        mNotificationManager.notify(1, mBuilder.build());
+        int percent=progress*100/max;
+        if (percent>pro_now){
+            pro_now=percent;
+            int static_max = 100;
+            mBuilder.setProgress(static_max, pro_now, false);
+            mNotificationManager.notify(1, mBuilder.build());
+        }
     }
 
-    public void finish(int progress, int max, int timeout) {
+    public void finish(int progress, int max, final int timeout) {
         mBuilder.setContentText(_context.getResources().getText(R.string.notif_finished_loading));
         mBuilder.setContentIntent(PendingIntent.getActivity(_context, 0, new Intent(), 0));
         mBuilder.setOngoing(false);
@@ -48,9 +53,11 @@ public class FontDbLoadNotifier {
         new Thread(new Runnable() {
             @Override
             public void run() {
+
                 try {
-                    Thread.currentThread().sleep(5000);
+                    Thread.currentThread().sleep(timeout);
                 } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
                 mNotificationManager.cancel(1);
             }
