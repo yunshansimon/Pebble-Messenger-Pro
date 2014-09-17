@@ -146,7 +146,7 @@ public class MessageDbHandler extends SQLiteOpenHelper {
             do{
                 if (counter>=fromPos && counter<= toPos) {
                     messageTable.append(cursor.getInt(0));
-                    messageTable.append(" ");
+                    messageTable.append('|');
                     Time rTime=new Time();
                     rTime.parse(cursor.getString(1));
                     Time nowTime=new Time();
@@ -161,8 +161,8 @@ public class MessageDbHandler extends SQLiteOpenHelper {
                     }else {
                         messageTable.append("[<1 Mins]");
                     }
-                    messageTable.append(" ").append(cursor.getString(2)).append(cursor.getString(4));
-                    messageTable.append("\n");
+                    messageTable.append('|').append(cursor.getString(2)).append('|').append(cursor.getString(4));
+                    messageTable.append('\n');
                 }else if (counter>toPos){
                    break;
                 }
