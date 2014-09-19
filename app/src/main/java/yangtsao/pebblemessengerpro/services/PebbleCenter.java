@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -106,6 +107,7 @@ public class PebbleCenter extends Service {
     private static final int REQUEST_EXTRA_SPEAKER_OFF=2;
  //   private static final int REQUEST_EXTRA_DELAY_OFF=0;
     private static final int REQUEST_EXTRA_DELAY_ON=1;
+    private static final int ID_EXTRA_DATA2=3;
 
 
 
@@ -188,7 +190,7 @@ public class PebbleCenter extends Service {
                 switch (data.getUnsignedInteger(ID_COMMAND).intValue()){
                     case REQUEST_TRANSID_CALL_TABLE: {
                         Constants.log(TAG_NAME,"Request call table.");
-
+                        clean_SendQue();
                         Message msg = Message.obtain();
                         msg.what = MessageProcessingService.MSG_GET_CALL_TABLE;
                         try {
@@ -200,7 +202,7 @@ public class PebbleCenter extends Service {
                         break;
                     case REQUEST_TRANSID_MESSAGE_TABLE: {
                         Constants.log(TAG_NAME,"Request message table.");
-
+                        clean_SendQue();
                         Message msg = Message.obtain();
                         msg.what = MessageProcessingService.MSG_GET_MESSAGE_TABLE;
                         try {
@@ -212,6 +214,7 @@ public class PebbleCenter extends Service {
                         break;
                     case REQUEST_TRANSID_CALL:
                     {
+                        clean_SendQue();
                         Message msg=Message.obtain();
                         msg.what=MessageProcessingService.MSG_GET_CALL;
                         Bundle b=new Bundle();
@@ -228,6 +231,7 @@ public class PebbleCenter extends Service {
                     }
                         break;
                     case REQUEST_TRANSID_MESSAGE:
+                        clean_SendQue();
                         Message msg=Message.obtain();
                         msg.what=MessageProcessingService.MSG_GET_MESSAGE;
                         Bundle b=new Bundle();
@@ -242,15 +246,29 @@ public class PebbleCenter extends Service {
                         }
                         break;
                     case REQUEST_TRANSID_PICKUP_PHONE:
-                        switch (data.getUnsignedInteger(ID_EXTRA_DATA).intValue()){
-                            case REQUEST_EXTRA_SPEAKER_ON:
-                                answerCall(true);
-                                break;
-                            case REQUEST_EXTRA_SPEAKER_OFF:
-                                answerCall(false);
-                                break;
+                        TelephonyManager telMag = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+                        Constants.log("Receivephone","Receive phone:"+ data.getString(ID_EXTRA_DATA2));
+                        if (telMag.getCallState()==TelephonyManager.CALL_STATE_RINGING){
+                            switch (data.getUnsignedInteger(ID_EXTRA_DATA).intValue()) {
+                                case REQUEST_EXTRA_SPEAKER_ON:
+                                    answerCall(true);
+                                    break;
+                                case REQUEST_EXTRA_SPEAKER_OFF:
+                                    answerCall(false);
+                                    break;
+                            }
+                        }else{
+                            switch (data.getUnsignedInteger(ID_EXTRA_DATA).intValue()) {
+                                case REQUEST_EXTRA_SPEAKER_ON:
+                                    dialNumber(data.getString(ID_EXTRA_DATA2), true);
+                                    break;
+                                case REQUEST_EXTRA_SPEAKER_OFF:
+                                    dialNumber(data.getString(ID_EXTRA_DATA2), false);
+                                    break;
+                            }
+
                         }
-                        pebbleBusy=false;
+                        pebbleBusy = false;
                         break;
                     case REQUEST_TRANSID_HANGOFF_PHONE:
                         endCall();
@@ -458,20 +476,25 @@ public class PebbleCenter extends Service {
             if(!isPebbleEnable){
                 return;
             }
+
             switch (msg.what){
                 case PREPARE_MESSAGE:{
 
                     if(pebbleBusy){
+                        Constants.log("PREPARE","pebble is busy.");
                         Message pmMsg=this.obtainMessage(PREPARE_MESSAGE);
                         pmMsg.setData(msg.getData());
                         this.sendMessageDelayed(pmMsg,3000);
                         return;
                     }else{
                         if (need_delay){
+
+
                             Time nowtime=new Time();
                             nowtime.setToNow();
                             long delay=nowtime.toMillis(false)-busyBegin.toMillis(false);
                             if(delay<timeOut){
+                                Constants.log("PREPARE","pebble is on delay.");
                                 Message pmMsg=this.obtainMessage(PREPARE_MESSAGE);
                                 pmMsg.setData(msg.getData());
                                 this.sendMessageDelayed(pmMsg,delay+50);
@@ -515,7 +538,9 @@ public class PebbleCenter extends Service {
     private void split_string_to_package_add_to_sendQue(String strMsg, byte commandID){
         sendLock.lock();
         PebbleDictionary dataMsg;
-        byte totalPackges=(byte) bigInt(strMsg.length()/MAX_CHARS_PACKAGE_CONTAIN);
+
+        byte totalPackges=(byte) bigInt((float)strMsg.length()/(float)MAX_CHARS_PACKAGE_CONTAIN);
+        Constants.log(TAG_NAME,"Send Table:\n" + strMsg + "\ntotalpackages:" + String.valueOf(totalPackges)+ " strlen:" + String.valueOf(strMsg.length()));
         for (int pg=1;pg<=totalPackges;pg++){
             dataMsg=new PebbleDictionary();
             if (pg==1){
@@ -542,7 +567,7 @@ public class PebbleCenter extends Service {
         for(String str:splitString){
             Constants.log(TAG_NAME,"splitPages, deal:" + str);
         }
-        int pageCount=bigInt(splitString.length /(float) fLines);
+        int pageCount=bigInt((float)splitString.length /(float) fLines);
         for (int page=1;page<=pageCount;page++){
             PebbleMessage itemPm=new PebbleMessage();
             itemPm.set_id(tmpPM.get_id());
@@ -583,7 +608,7 @@ public class PebbleCenter extends Service {
         Constants.log(TAG_NAME,"listpm.size:"+ String.valueOf(listPM.size()));
         for(int page=1;page<=listPM.size();page++){
             PebbleMessage dealPM=listPM.get(page-1);
-            int strPackages=bigInt(dealPM.getAscMsg().length()/(float)MAX_CHARS_PACKAGE_CONTAIN);
+            int strPackages=bigInt((float)dealPM.getAscMsg().length()/(float)MAX_CHARS_PACKAGE_CONTAIN);
             byte totalPackages=(byte) (dealPM.getCharacterQueue().size()+strPackages);
             Constants.log(TAG_NAME,"total Packages:" + String.valueOf(totalPackages));
             for (int pg=1;pg<=strPackages;pg++){
@@ -849,37 +874,35 @@ public class PebbleCenter extends Service {
             // uid=10017
             // 这里需要注意一点，发送广播时加了权限“android.permission.CALL_PRIVLEGED”，则接受该广播时也需要增加该权限。但是4.1以上版本貌似这个权限只能系统应用才可以得到。测试的时候，自定义的接收器无法接受到此广播，后来去掉了这个权限，设为NULL便可以监听到了。
 
-            if (android.os.Build.VERSION.SDK_INT >= 15) {
-                Constants.log("speakerset", "AudioManager before mode:" + audioManager.getMode() + " speaker mod:"
+
+            Constants.log("speakerset", "AudioManager before mode:" + audioManager.getMode() + " speaker mod:"
+                    + String.valueOf(audioManager.isSpeakerphoneOn()));
+            Intent meidaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+            KeyEvent keyEvent = new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_HEADSETHOOK);
+            meidaButtonIntent.putExtra(Intent.EXTRA_KEY_EVENT, keyEvent);
+            context.sendOrderedBroadcast(meidaButtonIntent, null);
+            if (isSpeakon) {
+                try {
+                    Thread.sleep(500);
+
+                } catch (InterruptedException e) {
+                    Constants.log("speakerset", "Problem while sleeping");
+                }
+                Constants.log("speakerset", "AudioManager answer mode:" + audioManager.getMode() + " speaker mod:"
                         + String.valueOf(audioManager.isSpeakerphoneOn()));
-                Intent meidaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
-                KeyEvent keyEvent = new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_HEADSETHOOK);
-                meidaButtonIntent.putExtra(Intent.EXTRA_KEY_EVENT, keyEvent);
-                context.sendOrderedBroadcast(meidaButtonIntent, null);
-                if (isSpeakon) {
+                while (audioManager.getMode() != AudioManager.MODE_IN_CALL) {
                     try {
-                        Thread.sleep(500);
+                        Thread.sleep(300);
 
                     } catch (InterruptedException e) {
                         Constants.log("speakerset", "Problem while sleeping");
                     }
-                    Constants.log("speakerset", "AudioManager answer mode:" + audioManager.getMode() + " speaker mod:"
-                            + String.valueOf(audioManager.isSpeakerphoneOn()));
-                    while (audioManager.getMode() != AudioManager.MODE_IN_CALL) {
-                        try {
-                            Thread.sleep(300);
-
-                        } catch (InterruptedException e) {
-                            Constants.log("speakerset", "Problem while sleeping");
-                        }
-                    }
-                    // audioManager.setMicrophoneMute(true);
-                    audioManager.setSpeakerphoneOn(true);
-                    // audioManager.setMode(AudioManager.MODE_IN_CALL);
-                    Constants.log("speakerset", "AudioManager set mode:" + audioManager.getMode() + " speaker mod:"
-                            + String.valueOf(audioManager.isSpeakerphoneOn()));
-
                 }
+                // audioManager.setMicrophoneMute(true);
+                audioManager.setSpeakerphoneOn(true);
+                // audioManager.setMode(AudioManager.MODE_IN_CALL);
+                Constants.log("speakerset", "AudioManager set mode:" + audioManager.getMode() + " speaker mod:"
+                        + String.valueOf(audioManager.isSpeakerphoneOn()));
 
             }
         } else {
@@ -893,6 +916,55 @@ public class PebbleCenter extends Service {
             meidaButtonIntent.putExtra(Intent.EXTRA_KEY_EVENT, keyEvent);
             context.sendOrderedBroadcast(meidaButtonIntent, null);
 
+        }
+    }
+
+    private void dialNumber(String phoneNumber, boolean isSpeakon){
+        Context context = getApplicationContext();
+
+        AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        Constants.log(TAG_NAME,"Dial phone:"+ phoneNumber);
+        // 判断是否插上了耳机
+        Intent callIntent=new Intent(Intent.ACTION_CALL);
+        callIntent.setData(Uri.parse("tel:" + phoneNumber));
+        callIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        callIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
+        startActivity(callIntent);
+
+        if (!audioManager.isWiredHeadsetOn()) {
+            // 4.1以上系统限制了部分权限， 使用三星4.1版本测试提示警告：Permission Denial: not allowed to
+            // send broadcast android.intent.action.HEADSET_PLUG from pid=1324,
+            // uid=10017
+            // 这里需要注意一点，发送广播时加了权限“android.permission.CALL_PRIVLEGED”，则接受该广播时也需要增加该权限。但是4.1以上版本貌似这个权限只能系统应用才可以得到。测试的时候，自定义的接收器无法接受到此广播，后来去掉了这个权限，设为NULL便可以监听到了。
+
+
+            Constants.log("speakerset", "AudioManager before mode:" + audioManager.getMode() + " speaker mod:"
+                    + String.valueOf(audioManager.isSpeakerphoneOn()));
+
+            if (isSpeakon) {
+                try {
+                    Thread.sleep(500);
+
+                } catch (InterruptedException e) {
+                    Constants.log("speakerset", "Problem while sleeping");
+                }
+                Constants.log("speakerset", "AudioManager answer mode:" + audioManager.getMode() + " speaker mod:"
+                        + String.valueOf(audioManager.isSpeakerphoneOn()));
+                while (audioManager.getMode() != AudioManager.MODE_IN_CALL) {
+                    try {
+                        Thread.sleep(300);
+
+                    } catch (InterruptedException e) {
+                        Constants.log("speakerset", "Problem while sleeping");
+                    }
+                }
+                // audioManager.setMicrophoneMute(true);
+                audioManager.setSpeakerphoneOn(true);
+                // audioManager.setMode(AudioManager.MODE_IN_CALL);
+                Constants.log("speakerset", "AudioManager set mode:" + audioManager.getMode() + " speaker mod:"
+                        + String.valueOf(audioManager.isSpeakerphoneOn()));
+
+            }
         }
     }
 

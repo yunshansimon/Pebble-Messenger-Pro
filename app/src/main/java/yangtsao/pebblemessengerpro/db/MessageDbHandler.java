@@ -208,7 +208,7 @@ public class MessageDbHandler extends SQLiteOpenHelper {
         }
         if (cursor.getCount()>0){
             cursor.moveToFirst();
-            content.putString(MessageDbHandler.COL_CALL_ID,ID);
+            content.putLong(MessageDbHandler.COL_CALL_ID,Integer.parseInt(ID));
             content.putString(MessageDbHandler.COL_CALL_NUMBER,cursor.getString(2));
             content.putString(MessageDbHandler.COL_CALL_NAME,cursor.getString(3));
             if (cursor.getString(4).equalsIgnoreCase(NEW_ICON)) {
