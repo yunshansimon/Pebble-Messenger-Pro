@@ -168,7 +168,7 @@ public class MessageDbHandler extends SQLiteOpenHelper {
                 }
                 counter++;
             } while (cursor.moveToNext());
-
+            Constants.log(TAG_NAME,"Get table:"+tableName + " rows:" + String.valueOf(counter));
         }
         cursor.close();
         return messageTable.toString();
@@ -184,7 +184,7 @@ public class MessageDbHandler extends SQLiteOpenHelper {
         }
         if (cursor.getCount()>0){
             cursor.moveToFirst();
-            content.putString(MessageDbHandler.COL_MESSAGE_ID,ID);
+            content.putLong(MessageDbHandler.COL_MESSAGE_ID,Integer.parseInt(ID));
             content.putString(MessageDbHandler.COL_MESSAGE_CONTENT,cursor.getString(3));
             if (cursor.getString(4).equalsIgnoreCase(NEW_ICON)) {
                 ContentValues values = new ContentValues();

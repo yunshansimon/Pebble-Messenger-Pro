@@ -9,6 +9,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -18,6 +20,7 @@ import android.os.Messenger;
 import android.os.RemoteException;
 
 import android.preference.PreferenceManager;
+import android.provider.ContactsContract;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.format.Time;
@@ -122,6 +125,7 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
                     case Constants.BROADCAST_CALL_INCOMING:
                         String number=intent.getStringExtra(Constants.BROADCAST_PHONE_NUM);
                         String name=intent.getStringExtra(Constants.BROADCAST_NAME);
+
                         if (callQuietEnable) {
                             Calendar c = Calendar.getInstance();
                             Calendar now = new GregorianCalendar(0, 0, 0, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE));
@@ -494,14 +498,6 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
                         strBd.append(originalMessage.charAt(0));
                     } else {
                         if (col < 8) {
-                            if (col == 7) {
-                                if (message.getAscMsg().matches("\\w\\z") && originalMessage.matches("\\A\\w")) {
-                                    strBd.append("-\n");
-                                    row++;
-                                    col = 0;
-                                }
-                            }
-
                             col++;
                             strBd.append(originalMessage.charAt(0));
                         } else {
@@ -629,4 +625,5 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
         nowTime.setToNow();
         return mdb.addCall(nowTime,number ,name,icon);
     }
+
 }

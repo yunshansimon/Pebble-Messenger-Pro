@@ -3,9 +3,9 @@ package yangtsao.pebblemessengerpro.receivers;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+
 import android.database.Cursor;
 import android.net.Uri;
-
 import android.provider.ContactsContract;
 import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.TelephonyManager;
@@ -54,7 +54,6 @@ public class CallStateHandler extends BroadcastReceiver {
 
     public  String queryNameByNum(Context context, String num) {
         Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(num));
-
         Cursor cursor = context.getContentResolver().query(uri, new String[] {
                 ContactsContract.PhoneLookup.DISPLAY_NAME
         }, null, null, null);

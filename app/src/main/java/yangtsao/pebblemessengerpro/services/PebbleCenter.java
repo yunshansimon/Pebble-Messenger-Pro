@@ -187,6 +187,8 @@ public class PebbleCenter extends Service {
                 Constants.log(TAG_NAME,"Received data form pebble");
                 switch (data.getUnsignedInteger(ID_COMMAND).intValue()){
                     case REQUEST_TRANSID_CALL_TABLE: {
+                        Constants.log(TAG_NAME,"Request call table.");
+
                         Message msg = Message.obtain();
                         msg.what = MessageProcessingService.MSG_GET_CALL_TABLE;
                         try {
@@ -197,6 +199,8 @@ public class PebbleCenter extends Service {
                     }
                         break;
                     case REQUEST_TRANSID_MESSAGE_TABLE: {
+                        Constants.log(TAG_NAME,"Request message table.");
+
                         Message msg = Message.obtain();
                         msg.what = MessageProcessingService.MSG_GET_MESSAGE_TABLE;
                         try {
@@ -212,6 +216,8 @@ public class PebbleCenter extends Service {
                         msg.what=MessageProcessingService.MSG_GET_CALL;
                         Bundle b=new Bundle();
                         b.putString(MessageDbHandler.COL_CALL_ID, data.getString(ID_EXTRA_DATA));
+                        Constants.log(TAG_NAME,"Request call id:"+ data.getString(ID_EXTRA_DATA));
+
                         msg.setData(b);
                         try {
                             rMessageProcessingHandler.send(msg);
@@ -226,6 +232,8 @@ public class PebbleCenter extends Service {
                         msg.what=MessageProcessingService.MSG_GET_MESSAGE;
                         Bundle b=new Bundle();
                         b.putString(MessageDbHandler.COL_MESSAGE_ID, data.getString(ID_EXTRA_DATA));
+                        Constants.log(TAG_NAME,"Request message id:"+ data.getString(ID_EXTRA_DATA));
+
                         msg.setData(b);
                         try {
                             rMessageProcessingHandler.send(msg);
@@ -250,29 +258,35 @@ public class PebbleCenter extends Service {
 
                         break;
                     case REQUEST_TRANSID_HANGOFF_SMS1:
+                        Constants.log(TAG_NAME,"Request hangoff and send sms1");
+
                         endCall();
                         doSendSMSTo(data.getString(ID_EXTRA_DATA),sms1);
                         pebbleBusy=false;
 
                         break;
                     case REQUEST_TRANSID_HANGOFF_SMS2:
+                        Constants.log(TAG_NAME,"Request hangoff and send sms2");
+
                         endCall();
                         doSendSMSTo(data.getString(ID_EXTRA_DATA),sms2);
                         pebbleBusy=false;
 
                         break;
                     case REQUEST_TRANSID_CLOSE_APP:
-                        Constants.log(TAG_NAME,"Get close app command.");
+                        Constants.log(TAG_NAME,"Request close app command.");
                         sendMsgThreadHandler.sendEmptyMessage(SEND_CLOSE_APP);
                         need_delay=true;
 
                         break;
                     case REQUEST_TRANSID_NEXTPAGE:
+                        Constants.log(TAG_NAME,"Request send next page.");
+
                         sendMsgThreadHandler.sendEmptyMessage(SEND_NEXT_PAGE);
                         break;
                     case REQUEST_TRANSID_READ_NOTIFY:
                     {
-                        Constants.log(TAG_NAME,"Get command to read msg");
+                        Constants.log(TAG_NAME,"Request  read msg");
                         Message read_msg=Message.obtain();
                         read_msg.what=MessageProcessingService.MSG_READ;
                         Bundle bd=new Bundle();
@@ -286,9 +300,10 @@ public class PebbleCenter extends Service {
                     }
                         break;
                     case REQUEST_TRANSID_IM_FREE:
-                        need_delay = data.getUnsignedInteger(ID_EXTRA_DATA).intValue() == REQUEST_EXTRA_DELAY_ON ;
-                        pebbleBusy=false;
+                        Constants.log(TAG_NAME,"Request pebble app is free to receive data.");
 
+                        need_delay = data.getUnsignedInteger(ID_EXTRA_DATA).intValue() == REQUEST_EXTRA_DELAY_ON ;
+                        clean_SendQue();
                         break;
                 }
             }
