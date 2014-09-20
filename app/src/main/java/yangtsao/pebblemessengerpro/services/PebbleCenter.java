@@ -67,9 +67,11 @@ public class PebbleCenter extends Service {
     private static final int SEND_CALL_END=5;
     private static final int SEND_CLOSE_APP=6;
     private static final int SEND_CALL_HOOK=7;
+    private static final int SEND_OPEN_APP=8;
 
     private static final int TRANS_ID_COMMON=0;
     private static final int TRANS_ID_END=1;
+    private static final int TRANS_ID_EMPTY=13;
 
  //   private int fChars;  //line contain chars
     private int fLines;  //page contain lines
@@ -340,6 +342,10 @@ public class PebbleCenter extends Service {
                     case TRANS_ID_END:
                         send_full_page=true;
                         break;
+                    case TRANS_ID_EMPTY:
+                        pebbleBusy=true;
+                        sendMsgThreadHandler.sendEmptyMessage(SEND_CONTINUE);
+                        break;
                 }
             }
         });
@@ -356,8 +362,10 @@ public class PebbleCenter extends Service {
                         case TRANS_ID_END:
                             send_full_page=true;
                             break;
-                        default:
-                            sendMsgThreadHandler.sendEmptyMessage(SEND_CLOSE_APP);
+                        case TRANS_ID_EMPTY:
+                            appStatue=0;
+                            sendMsgThreadHandler.sendEmptyMessage(SEND_OPEN_APP);
+
                     }
                 }else{
                     sendMsgThreadHandler.sendEmptyMessage(SEND_CLOSE_APP);
@@ -688,6 +696,7 @@ public class PebbleCenter extends Service {
     }
 
     private void clean_SendQue(){
+
         sendQueue.clear();
         pebbleBusy=false;
     }
@@ -715,8 +724,7 @@ public class PebbleCenter extends Service {
             }
             switch (msg.what){
                 case SEND_MESSAGE:
-                    wait_for_open_pebble_app();
-                    this.post(sendToPebble);
+                    this.post(sendEmpty);
                     break;
                 case SEND_CONTINUE:
                 {
@@ -739,8 +747,7 @@ public class PebbleCenter extends Service {
                 }
                     break;
                 case SEND_CALL:
-                    wait_for_open_pebble_app();
-                    this.post(sendToPebble);
+                    this.post(sendEmpty);
                     break;
                 case SEND_CALL_END:
                 {
@@ -768,6 +775,10 @@ public class PebbleCenter extends Service {
                     sendQueue.addFirst(callHook);
                     this.postAtFrontOfQueue(sendToPebble);
                     sendLock.unlock();
+                    break;
+                case SEND_OPEN_APP:
+                    wait_for_open_pebble_app();
+                    this.post(sendEmpty);
                     break;
             }
 
@@ -816,6 +827,15 @@ public class PebbleCenter extends Service {
         public void run() {
             appStatue=0;
             clean_SendQue();
+        }
+    };
+
+    Runnable sendEmpty=new Runnable() {
+        @Override
+        public void run() {
+            PebbleDictionary empPd=new PebbleDictionary();
+            empPd.addUint8(ID_COMMAND,REMOTE_EMPTY);
+            PebbleKit.sendDataToPebbleWithTransactionId(_contex, Constants.PEBBLE_UUID, empPd, TRANS_ID_EMPTY);
         }
     };
 

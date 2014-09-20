@@ -69,6 +69,9 @@ public class NavigationActivity extends Activity
                         .commit();
                 break;
             case 3:
+                fragmentManager.beginTransaction()
+                        .replace(R.id.container,new PlaceholderFragment())
+                        .commit();
                 break;
 
         }
@@ -79,6 +82,7 @@ public class NavigationActivity extends Activity
         switch (number) {
             case 0:
                 mTitle = getString(R.string.title_setup_activity);
+                break;
             case 1:
                 mTitle = getString(R.string.title_setting_activity);
                 break;
@@ -88,8 +92,7 @@ public class NavigationActivity extends Activity
             case 3:
                 mTitle = getString(R.string.title_about_activity);
                 break;
-            case 4:
-                mTitle=getString(R.string.title_about_activity);
+
         }
     }
 
@@ -166,8 +169,7 @@ public class NavigationActivity extends Activity
         @Override
         public void onAttach(Activity activity) {
             super.onAttach(activity);
-            ((NavigationActivity) activity).onSectionAttached(
-                    getArguments().getInt(ARG_SECTION_NUMBER));
+            ((NavigationActivity) activity).onSectionAttached(3);
         }
     }
 
