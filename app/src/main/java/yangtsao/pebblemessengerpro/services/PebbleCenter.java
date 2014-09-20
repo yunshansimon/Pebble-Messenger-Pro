@@ -1,3 +1,19 @@
+
+/*
+ * Pebble Messenger is used to display non-english message on Pebble.
+ * Copyright (C) 2014  Yang Tsao
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 package yangtsao.pebblemessengerpro.services;
 
 import android.app.Service;
@@ -895,8 +911,7 @@ public class PebbleCenter extends Service {
             // 这里需要注意一点，发送广播时加了权限“android.permission.CALL_PRIVLEGED”，则接受该广播时也需要增加该权限。但是4.1以上版本貌似这个权限只能系统应用才可以得到。测试的时候，自定义的接收器无法接受到此广播，后来去掉了这个权限，设为NULL便可以监听到了。
 
 
-            Constants.log("speakerset", "AudioManager before mode:" + audioManager.getMode() + " speaker mod:"
-                    + String.valueOf(audioManager.isSpeakerphoneOn()));
+            Constants.log("speakerset", String.format("AudioManager before mode:%d speaker mod:%s", audioManager.getMode(), String.valueOf(audioManager.isSpeakerphoneOn())));
             Intent meidaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
             KeyEvent keyEvent = new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_HEADSETHOOK);
             meidaButtonIntent.putExtra(Intent.EXTRA_KEY_EVENT, keyEvent);
@@ -921,15 +936,13 @@ public class PebbleCenter extends Service {
                 // audioManager.setMicrophoneMute(true);
                 audioManager.setSpeakerphoneOn(true);
                 // audioManager.setMode(AudioManager.MODE_IN_CALL);
-                Constants.log("speakerset", "AudioManager set mode:" + audioManager.getMode() + " speaker mod:"
-                        + String.valueOf(audioManager.isSpeakerphoneOn()));
+                Constants.log("speakerset", String.format("AudioManager set mode:%d speaker mod:%s", audioManager.getMode(), String.valueOf(audioManager.isSpeakerphoneOn())));
 
             }
         } else {
             Constants.log(
                     "speakerset",
-                    "AudioManager before mode:" + audioManager.getMode() + " speaker mod:"
-                            + String.valueOf(audioManager.isSpeakerphoneOn()));
+                    String.format("AudioManager before mode:%d speaker mod:%s", audioManager.getMode(), String.valueOf(audioManager.isSpeakerphoneOn())));
 
             Intent meidaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
             KeyEvent keyEvent = new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_HEADSETHOOK);
@@ -943,10 +956,10 @@ public class PebbleCenter extends Service {
         Context context = getApplicationContext();
 
         AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-        Constants.log(TAG_NAME,"Dial phone:"+ phoneNumber);
+        Constants.log(TAG_NAME, String.format("Dial phone:%s", phoneNumber));
         // 判断是否插上了耳机
         Intent callIntent=new Intent(Intent.ACTION_CALL);
-        callIntent.setData(Uri.parse("tel:" + phoneNumber));
+        callIntent.setData(Uri.parse(String.format("tel:%s", phoneNumber)));
         callIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         callIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
         startActivity(callIntent);
@@ -958,8 +971,7 @@ public class PebbleCenter extends Service {
             // 这里需要注意一点，发送广播时加了权限“android.permission.CALL_PRIVLEGED”，则接受该广播时也需要增加该权限。但是4.1以上版本貌似这个权限只能系统应用才可以得到。测试的时候，自定义的接收器无法接受到此广播，后来去掉了这个权限，设为NULL便可以监听到了。
 
 
-            Constants.log("speakerset", "AudioManager before mode:" + audioManager.getMode() + " speaker mod:"
-                    + String.valueOf(audioManager.isSpeakerphoneOn()));
+            Constants.log("speakerset", String.format("AudioManager before mode:%d speaker mod:%s", audioManager.getMode(), String.valueOf(audioManager.isSpeakerphoneOn())));
 
             if (isSpeakon) {
                 try {
@@ -968,8 +980,7 @@ public class PebbleCenter extends Service {
                 } catch (InterruptedException e) {
                     Constants.log("speakerset", "Problem while sleeping");
                 }
-                Constants.log("speakerset", "AudioManager answer mode:" + audioManager.getMode() + " speaker mod:"
-                        + String.valueOf(audioManager.isSpeakerphoneOn()));
+                Constants.log("speakerset", String.format("AudioManager answer mode:%d speaker mod:%s", audioManager.getMode(), String.valueOf(audioManager.isSpeakerphoneOn())));
                 while (audioManager.getMode() != AudioManager.MODE_IN_CALL) {
                     try {
                         Thread.sleep(300);
@@ -981,8 +992,7 @@ public class PebbleCenter extends Service {
                 // audioManager.setMicrophoneMute(true);
                 audioManager.setSpeakerphoneOn(true);
                 // audioManager.setMode(AudioManager.MODE_IN_CALL);
-                Constants.log("speakerset", "AudioManager set mode:" + audioManager.getMode() + " speaker mod:"
-                        + String.valueOf(audioManager.isSpeakerphoneOn()));
+                Constants.log("speakerset", String.format("AudioManager set mode:%d speaker mod:%s", audioManager.getMode(), String.valueOf(audioManager.isSpeakerphoneOn())));
 
             }
         }
@@ -995,7 +1005,7 @@ public class PebbleCenter extends Service {
             for (String sms : smsList) {
                 smsmanager.sendTextMessage(phoneNumber, null, sms, null, null);
             }
-            Constants.log("sendsms", "send:[" + message + "] to number:" + phoneNumber);
+            Constants.log("sendsms", String.format("send:[%s] to number:%s", message, phoneNumber));
         }
     }
     @Override

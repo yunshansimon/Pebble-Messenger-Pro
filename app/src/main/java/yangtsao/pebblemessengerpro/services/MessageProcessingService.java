@@ -1,3 +1,19 @@
+
+/*
+ * Pebble Messenger is used to display non-english message on Pebble.
+ * Copyright (C) 2014  Yang Tsao
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 package yangtsao.pebblemessengerpro.services;
 
 
@@ -9,8 +25,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.net.Uri;
+
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -20,7 +35,6 @@ import android.os.Messenger;
 import android.os.RemoteException;
 
 import android.preference.PreferenceManager;
-import android.provider.ContactsContract;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.format.Time;

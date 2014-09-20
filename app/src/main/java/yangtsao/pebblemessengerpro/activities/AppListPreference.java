@@ -1,3 +1,18 @@
+/*
+ * Pebble Messenger is used to display non-english message on Pebble.
+ * Copyright (C) 2014  Yang Tsao
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 package yangtsao.pebblemessengerpro.activities;
 
 
@@ -37,9 +52,7 @@ import yangtsao.pebblemessengerpro.Constants;
 import yangtsao.pebblemessengerpro.R;
 import yangtsao.pebblemessengerpro.services.NotificationService;
 
-/**
- * Created by yunshansimon on 14-8-28.
- */
+
 public class AppListPreference extends DialogPreference {
 
     private static final String CLASS_TAG="AppListClass";
