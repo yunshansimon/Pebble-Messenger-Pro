@@ -44,7 +44,7 @@
             android:layout_gravity="right" />
 
         <Button
-            android:layout_width="wrap_content"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text="@string/setup_button_goto_setting"
             android:id="@+id/button_goto_setting"
@@ -58,7 +58,7 @@
             android:id="@+id/textView6" />
 
         <Button
-            android:layout_width="wrap_content"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text="@string/setup_button_goto_pebble"
             android:id="@+id/button_goto_pebble"
@@ -93,6 +93,25 @@
             android:text="Medium Text"
             android:id="@+id/text_font_base"
             android:layout_gravity="right" />
-
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/setup_tts_engine"
+            android:id="@+id/textView10" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Medium Text"
+            android:id="@+id/text_speech_engine"
+            android:layout_gravity="right" />
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/setup_button_goto_speech_setting"
+            android:id="@+id/button_goto_speech_setting"
+            android:layout_gravity="right"
+            android:visibility="invisible" />
     </LinearLayout>
 </FrameLayout>

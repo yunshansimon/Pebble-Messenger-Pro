@@ -29,6 +29,7 @@ import android.os.Bundle;
 import android.app.Fragment;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
+import android.speech.tts.TextToSpeech;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,6 +39,8 @@ import android.widget.TextView;
 
 import com.getpebble.android.kit.PebbleKit;
 
+import org.w3c.dom.Text;
+
 import yangtsao.pebblemessengerpro.Constants;
 import yangtsao.pebblemessengerpro.R;
 
@@ -45,15 +48,19 @@ import yangtsao.pebblemessengerpro.R;
  * A simple {@link Fragment} subclass.
  *
  */
-public class SetupFragment extends Fragment {
+public class SetupFragment extends Fragment implements TextToSpeech.OnInitListener {
     private static final int positionIndex=0;
     private TextView tvPebbleStatus;
     private TextView tvAccessStatus;
     private TextView tvWatchList;
     private TextView tvFontStatus;
+    private TextView tvSpeechEngine;
+    private Button btGotoSpeech;
     private Button btGotoSetting;
     private Button btGotoPebble;
     private Context _context;
+
+    private TextToSpeech myTTS;
 
     public SetupFragment() {
         // Required empty public constructor
@@ -69,6 +76,7 @@ public class SetupFragment extends Fragment {
         tvAccessStatus=(TextView) setupView.findViewById(R.id.text_accessibility_service_result);
         tvWatchList=(TextView) setupView.findViewById(R.id.text_watch_list);
         tvFontStatus=(TextView) setupView.findViewById(R.id.text_font_base);
+        tvSpeechEngine=(TextView) setupView.findViewById(R.id.text_speech_engine);
         btGotoSetting=(Button) setupView.findViewById(R.id.button_goto_setting);
         btGotoSetting.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -85,6 +93,16 @@ public class SetupFragment extends Fragment {
                 startActivity(i);
             }
         });
+        btGotoSpeech=(Button) setupView.findViewById(R.id.button_goto_speech_setting);
+        btGotoSpeech.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA));
+            }
+        });
+        Intent checkIntent=new Intent();
+        checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+        getActivity().startActivityFromFragment(SetupFragment.this,checkIntent,3);
         return setupView;
     }
 
@@ -150,8 +168,8 @@ public class SetupFragment extends Fragment {
             tvPebbleStatus.setText(R.string.setup_check_ok);
             tvPebbleStatus.setTextColor(Color.WHITE);
         }else{
-            tvPebbleStatus.setText(R.string.setup_check_bad);
-            tvAccessStatus.setTextColor(Color.RED);
+            tvPebbleStatus.setText(R.string.setup_check_disconnected);
+            tvPebbleStatus.setTextColor(Color.RED);
         }
         if (isAccessServiceOk(_context)){
             tvAccessStatus.setText(R.string.setup_check_ok);
@@ -174,5 +192,42 @@ public class SetupFragment extends Fragment {
             tvFontStatus.setText(R.string.setup_check_bad);
             tvFontStatus.setTextColor(Color.RED);
         }
+
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode==3){
+            if (resultCode==TextToSpeech.Engine.CHECK_VOICE_DATA_PASS){
+                myTTS=new TextToSpeech(_context,this);
+
+
+
+            }else{
+                tvSpeechEngine.setText(getString(R.string.setup_tts_failed));
+                tvSpeechEngine.setTextColor(Color.RED);
+                btGotoSpeech.setVisibility(Button.VISIBLE);
+            }
+        }
+    }
+
+    @Override
+    public void onInit(int i) {
+       if (i==TextToSpeech.SUCCESS){
+           tvSpeechEngine.setText(myTTS.getDefaultEngine()+ " " + getString(R.string.setup_tts_default_locale) + myTTS.getLanguage().getLanguage());
+           tvSpeechEngine.setTextColor(Color.WHITE);
+       }else {
+           myTTS.shutdown();
+           myTTS=null;
+       }
+    }
+
+
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        super.onPause();
+        if(myTTS!=null) myTTS.shutdown();
     }
 }

@@ -77,13 +77,20 @@
     <string name="setup_install_pebble_app">3. Install Pebble app</string>
     <string name="setup_watch_list">4. Check Watch List</string>
     <string name="setup_font_base_status">5. Font data base status</string>
+    <string name="setup_tts_engine">6. The system speech engine:</string>
+    <string name="setup_tts_default_locale">Language:</string>
+    <string name="setup_tts_failed">The speech engine is failed, your pebble will not read the notification</string>
 
     <string name="setup_check_ok">OK</string>
     <string name="setup_check_empty">Empty</string>
     <string name="setup_check_bad">Bad</string>
+    <string name="setup_check_disconnected">Disconnected</string>
     <string name="setup_watch_list_warning">Please go to [Setting->Watch List] to add app</string>
     <string name="setup_button_goto_setting">Setting->Accessibility</string>
     <string name="setup_button_goto_pebble">Install Pebble APP</string>
+    <string name="setup_button_goto_speech_setting">Setting->Text-to-speech output</string>
+    
+
 
     <string name="tools_button_rebuild_font">Rebuild Font Database</string>
     <string name="tools_button_clean_cache">Clean Notifications History</string>
