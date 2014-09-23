@@ -7,6 +7,6 @@
     android:accessibilityFeedbackType="feedbackVisual"
     android:notificationTimeout="100"
     android:canRetrieveWindowContent="true"
-    android:settingsActivity="yangtsao.pebblemessengerpro.NavigationActivity"
+    android:settingsActivity="com.yangtsaosoftware.pebblemessenger.NavigationActivity"
 />
 
