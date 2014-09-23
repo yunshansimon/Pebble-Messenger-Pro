@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  */
 
-package yangtsao.pebblemessengerpro.activities;
+package com.yangtsaosoftware.pebblemessenger.activities;
 
 
 
@@ -40,13 +40,13 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import yangtsao.pebblemessengerpro.Constants;
-import yangtsao.pebblemessengerpro.R;
-import yangtsao.pebblemessengerpro.db.FontDbHandler;
-import yangtsao.pebblemessengerpro.db.MessageDbHandler;
-import yangtsao.pebblemessengerpro.services.MessageProcessingService;
-import yangtsao.pebblemessengerpro.services.NotificationService;
-import yangtsao.pebblemessengerpro.services.PebbleCenter;
+import com.yangtsaosoftware.pebblemessenger.Constants;
+import com.yangtsaosoftware.pebblemessenger.R;
+import com.yangtsaosoftware.pebblemessenger.db.FontDbHandler;
+import com.yangtsaosoftware.pebblemessenger.db.MessageDbHandler;
+import com.yangtsaosoftware.pebblemessenger.services.MessageProcessingService;
+import com.yangtsaosoftware.pebblemessenger.services.NotificationService;
+import com.yangtsaosoftware.pebblemessenger.services.PebbleCenter;
 
 /**
  * A simple {@link Fragment} subclass.

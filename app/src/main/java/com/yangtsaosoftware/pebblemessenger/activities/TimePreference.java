@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  */
 
-package yangtsao.pebblemessengerpro.activities;
+package com.yangtsaosoftware.pebblemessenger.activities;
 
 
 

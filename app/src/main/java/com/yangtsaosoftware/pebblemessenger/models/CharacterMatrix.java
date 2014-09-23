@@ -1,4 +1,4 @@
-package yangtsao.pebblemessengerpro.models;
+package com.yangtsaosoftware.pebblemessenger.models;
 
 import java.util.ArrayList;
 import java.util.List;

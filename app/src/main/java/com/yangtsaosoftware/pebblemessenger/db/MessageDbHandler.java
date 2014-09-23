@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  */
 
-package yangtsao.pebblemessengerpro.db;
+package com.yangtsaosoftware.pebblemessenger.db;
 
 
 import android.content.ContentValues;
@@ -26,9 +26,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import android.os.Bundle;
 import android.text.format.Time;
-import yangtsao.pebblemessengerpro.R;
+import com.yangtsaosoftware.pebblemessenger.R;
 
-import yangtsao.pebblemessengerpro.Constants;
+import com.yangtsaosoftware.pebblemessenger.Constants;
 
 
 public class MessageDbHandler extends SQLiteOpenHelper {
@@ -36,7 +36,7 @@ public class MessageDbHandler extends SQLiteOpenHelper {
     private static final int VERSION     =2;
     //message table
     public static final String NEW_ICON="!";
-    public static final String OLD_ICON=".";
+    public static final String OLD_ICON= "";
     public static final String TABLE_MESSAGE_NAME="MESSAGES";
     public static final String COL_MESSAGE_ID="ID";
     public static final String COL_MESSAGE_TIME="RTIME";

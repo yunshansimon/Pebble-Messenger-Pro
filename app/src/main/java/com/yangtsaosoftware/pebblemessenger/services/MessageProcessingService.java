@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  */
 
-package yangtsao.pebblemessengerpro.services;
+package com.yangtsaosoftware.pebblemessenger.services;
 
 
 import android.app.Service;
@@ -44,14 +44,14 @@ import java.util.Calendar;
 import java.util.Deque;
 import java.util.GregorianCalendar;
 
-import yangtsao.pebblemessengerpro.Constants;
-import yangtsao.pebblemessengerpro.R;
-import yangtsao.pebblemessengerpro.db.FontDbHandler;
-import yangtsao.pebblemessengerpro.db.MessageDbHandler;
-import yangtsao.pebblemessengerpro.models.CharacterMatrix;
-import yangtsao.pebblemessengerpro.models.Font;
-import yangtsao.pebblemessengerpro.models.PebbleCall;
-import yangtsao.pebblemessengerpro.models.PebbleMessage;
+import com.yangtsaosoftware.pebblemessenger.Constants;
+import com.yangtsaosoftware.pebblemessenger.R;
+import com.yangtsaosoftware.pebblemessenger.db.FontDbHandler;
+import com.yangtsaosoftware.pebblemessenger.db.MessageDbHandler;
+import com.yangtsaosoftware.pebblemessenger.models.CharacterMatrix;
+import com.yangtsaosoftware.pebblemessenger.models.Font;
+import com.yangtsaosoftware.pebblemessenger.models.PebbleCall;
+import com.yangtsaosoftware.pebblemessenger.models.PebbleMessage;
 
 public class MessageProcessingService extends Service implements TextToSpeech.OnInitListener {
     private static FontDbHandler fdb;

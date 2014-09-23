@@ -16,7 +16,7 @@
 
 <resources>
 
-    <string name="app_name">Pebble 信使</string>
+    <string name="app_name">Pebble信使 增强版</string>
     <string name="action_settings">恢复初始设置</string>
     <string name="accessibility_description">此设置将允许Pebble信使获取通知</string>
     <string name="notif_started_loading">正在建立文字点阵库…</string>

@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  */
 
-package yangtsao.pebblemessengerpro.activities;
+package com.yangtsaosoftware.pebblemessenger.activities;
 
 
 import android.app.Activity;
@@ -38,7 +38,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import yangtsao.pebblemessengerpro.R;
+import com.yangtsaosoftware.pebblemessenger.R;
 
 /**
  * Fragment used for managing interactions for and presentation of a navigation drawer.

@@ -1,4 +1,4 @@
-package yangtsao.pebblemessengerpro.models;
+package com.yangtsaosoftware.pebblemessenger.models;
 
 /**
  * Created by yunshan on 8/17/14.

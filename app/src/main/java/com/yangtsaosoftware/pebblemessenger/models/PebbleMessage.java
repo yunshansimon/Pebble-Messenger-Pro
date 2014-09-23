@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  */
 
-package yangtsao.pebblemessengerpro.models;
+package com.yangtsaosoftware.pebblemessenger.models;
 
 import java.io.Serializable;
 import java.util.ArrayDeque;

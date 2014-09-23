@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  */
 
-package yangtsao.pebblemessengerpro.services;
+package com.yangtsaosoftware.pebblemessenger.services;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -54,12 +54,12 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 
-import yangtsao.pebblemessengerpro.Constants;
-import yangtsao.pebblemessengerpro.R;
-import yangtsao.pebblemessengerpro.db.MessageDbHandler;
-import yangtsao.pebblemessengerpro.models.CharacterMatrix;
-import yangtsao.pebblemessengerpro.models.PebbleCall;
-import yangtsao.pebblemessengerpro.models.PebbleMessage;
+import com.yangtsaosoftware.pebblemessenger.Constants;
+import com.yangtsaosoftware.pebblemessenger.R;
+import com.yangtsaosoftware.pebblemessenger.db.MessageDbHandler;
+import com.yangtsaosoftware.pebblemessenger.models.CharacterMatrix;
+import com.yangtsaosoftware.pebblemessenger.models.PebbleCall;
+import com.yangtsaosoftware.pebblemessenger.models.PebbleMessage;
 
 public class PebbleCenter extends Service {
     public final static int PEBBLE_SEND_MESSAGE=1;

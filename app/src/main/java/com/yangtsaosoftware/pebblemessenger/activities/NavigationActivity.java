@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  */
 
-package yangtsao.pebblemessengerpro.activities;
+package com.yangtsaosoftware.pebblemessenger.activities;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -29,8 +29,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import yangtsao.pebblemessengerpro.Constants;
-import yangtsao.pebblemessengerpro.R;
+import com.yangtsaosoftware.pebblemessenger.Constants;
+import com.yangtsaosoftware.pebblemessenger.R;
 
 public class NavigationActivity extends Activity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {

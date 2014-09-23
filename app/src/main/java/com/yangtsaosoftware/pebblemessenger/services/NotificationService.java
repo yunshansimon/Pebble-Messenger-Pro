@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  */
 
-package yangtsao.pebblemessengerpro.services;
+package com.yangtsaosoftware.pebblemessenger.services;
 
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -34,8 +34,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityEvent;
-import yangtsao.pebblemessengerpro.Constants;
-import yangtsao.pebblemessengerpro.db.MessageDbHandler;
+import com.yangtsaosoftware.pebblemessenger.Constants;
+import com.yangtsaosoftware.pebblemessenger.db.MessageDbHandler;
 
 import android.app.Notification;
 import android.os.Parcelable;
@@ -108,7 +108,7 @@ public class NotificationService extends AccessibilityService{
             Constants.log(LOG_TAG, eventPackageName + " was not found in the include list. Returning.");
             return;
         }
-        String title = eventPackageName.substring(eventPackageName.lastIndexOf(".")+1);
+        String title = eventPackageName.substring(eventPackageName.lastIndexOf('.')+1);
         // get the notification text
         String notificationText = event.getText().toString();
         // strip the first and last characters which are [ and ]

@@ -14,15 +14,13 @@
  * GNU General Public License for more details.
  */
 
-package yangtsao.pebblemessengerpro.activities;
+package com.yangtsaosoftware.pebblemessenger.activities;
 
 
 
 import android.app.Activity;
-import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -39,10 +37,8 @@ import android.widget.TextView;
 
 import com.getpebble.android.kit.PebbleKit;
 
-import org.w3c.dom.Text;
-
-import yangtsao.pebblemessengerpro.Constants;
-import yangtsao.pebblemessengerpro.R;
+import com.yangtsaosoftware.pebblemessenger.Constants;
+import com.yangtsaosoftware.pebblemessenger.R;
 
 /**
  * A simple {@link Fragment} subclass.

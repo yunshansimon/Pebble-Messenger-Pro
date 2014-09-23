@@ -13,7 +13,7 @@
  * GNU General Public License for more details.
  */
 
-package yangtsao.pebblemessengerpro.activities;
+package com.yangtsaosoftware.pebblemessenger.activities;
 
 
 import android.content.Context;
@@ -40,17 +40,15 @@ import android.widget.TextView;
 
 import org.apache.http.protocol.HTTP;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-import yangtsao.pebblemessengerpro.Constants;
-import yangtsao.pebblemessengerpro.R;
-import yangtsao.pebblemessengerpro.services.NotificationService;
+import com.yangtsaosoftware.pebblemessenger.Constants;
+import com.yangtsaosoftware.pebblemessenger.R;
+import com.yangtsaosoftware.pebblemessenger.services.NotificationService;
 
 
 public class AppListPreference extends DialogPreference {

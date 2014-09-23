@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  */
 
-package yangtsao.pebblemessengerpro.db;
+package com.yangtsaosoftware.pebblemessenger.db;
 
 
 import android.content.Context;
@@ -33,8 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import yangtsao.pebblemessengerpro.Constants;
-import yangtsao.pebblemessengerpro.models.Font;
+import com.yangtsaosoftware.pebblemessenger.Constants;
+import com.yangtsaosoftware.pebblemessenger.models.Font;
 
 /**
  * Created by yunshan on 8/16/14.

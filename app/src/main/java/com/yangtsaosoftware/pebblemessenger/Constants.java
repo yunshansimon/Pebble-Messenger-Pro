@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  */
 
-package yangtsao.pebblemessengerpro;
+package com.yangtsaosoftware.pebblemessenger;
 
 
 
@@ -27,11 +27,11 @@ public class Constants {
         throw new UnsupportedOperationException("This class is non-instantiable, so stop trying!");
     }
     // Accessibility specific items
-    public static final String  ACCESSIBILITY_SERVICE                 = "yangtsao.pebblemessengerpro/yangtsao.pebblemessengerpro.services.NotificationService";
+    public static final String  ACCESSIBILITY_SERVICE                 = "com.yangtsaosoftware.pebblemessenger/com.yangtsaosoftware.pebblemessenger.services.NotificationService";
     //----------------------------------------
 
     //system
-    public static final boolean IS_LOGGABLE                           = false;
+    public static final boolean IS_LOGGABLE                           = true;
     public static final String  DATABASE_READY                        = "status_database_ready";
     //----------------------------------------
 
