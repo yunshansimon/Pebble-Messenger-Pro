@@ -512,8 +512,6 @@ public class PebbleCenter extends Service {
                         return;
                     }else{
                         if (need_delay){
-
-
                             Time nowtime=new Time();
                             nowtime.setToNow();
                             long delay=nowtime.toMillis(false)-busyBegin.toMillis(false);
@@ -521,7 +519,7 @@ public class PebbleCenter extends Service {
                                 Constants.log("PREPARE","pebble is on delay.");
                                 Message pmMsg=this.obtainMessage(PREPARE_MESSAGE);
                                 pmMsg.setData(msg.getData());
-                                this.sendMessageDelayed(pmMsg,delay+50);
+                                this.sendMessageDelayed(pmMsg,(timeOut-delay+50));
                                 return;
                             }
                         }
