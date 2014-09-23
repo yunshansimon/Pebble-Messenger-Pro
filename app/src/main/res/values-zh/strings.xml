@@ -130,4 +130,6 @@
     <string name="test_call_name">劳力士</string>
 
     <string name="seek_null_message">此通知已经不在系统缓存中了</string>
+    <string name="about_text">"作者： Yang Tsao\n开发工具： Android Studio\n系统最低版本： 4.1.2\nPebble最低版本： 2.4\n感谢： 妻子 Meiying Song 和 儿子 Gaoge Tsao\n\tTiago R. Espinha, Dattas Moonchaser(代码参考)\n最后： 希望您能喜欢它，如果您觉得它不值得购买，请联系我并告知订单号，无论任何时候我都会帮您退款。非常高兴能看到您给我的任何建议。 如果您喜欢Pebble信使，希望您能在google play上给它加几颗星.\n帮助网站：http://yangtsao.wordpress.com\n我的邮箱：yunshansimon@gmail.com"</string>
+
 </resources>
