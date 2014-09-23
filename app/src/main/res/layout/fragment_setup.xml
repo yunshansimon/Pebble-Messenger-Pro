@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="yangtsao.pebblemessengerpro.activities.SetupFragment">
+    tools:context="com.yangtsaosoftware.pebblemessenger.activities.SetupFragment">
 
     <!-- TODO: Update blank fragment layout -->
 

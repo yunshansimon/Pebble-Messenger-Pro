@@ -12,11 +12,11 @@ android {
     compileSdkVersion 16
     buildToolsVersion '20.0.0'
     defaultConfig {
-        applicationId 'yangtsao.pebblemessengerpro'
+        applicationId 'com.yangtsaosoftware.pebblemessenger'
         minSdkVersion 16
         targetSdkVersion 16
-        versionCode 1
-        versionName '1.0'
+        versionCode 37
+        versionName '6.0.1'
         signingConfig signingConfigs.config
     }
     buildTypes {

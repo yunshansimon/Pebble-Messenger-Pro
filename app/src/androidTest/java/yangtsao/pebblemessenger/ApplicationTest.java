@@ -1,4 +1,4 @@
-package yangtsao.pebblemessengerpro;
+package com.yangtsaosoftware.pebblemessenger;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

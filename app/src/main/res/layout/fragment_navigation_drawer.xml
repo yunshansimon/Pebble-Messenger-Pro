@@ -6,4 +6,4 @@
     android:divider="@android:color/holo_blue_light"
     android:dividerHeight="1dp"
     android:background="@android:color/black"
-    tools:context="yangtsao.pebblemessengerpro.activities.NavigationDrawerFragment" />
+    tools:context="com.yangtsaosoftware.pebblemessenger.activities.NavigationDrawerFragment" />
