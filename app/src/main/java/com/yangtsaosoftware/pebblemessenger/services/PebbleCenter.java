@@ -605,6 +605,7 @@ public class PebbleCenter extends Service {
                 if(tmpCM.getPos()[0]>=(page-1)*fLines && tmpCM.getPos()[0]<=page*fLines){
                     itemDqCM.add(tmpCM);
                 }else{
+                    tmpPM.getCharacterQueue().addFirst(tmpCM);
                     break;
                 }
             }

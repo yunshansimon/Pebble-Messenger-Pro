@@ -13,13 +13,13 @@
     <string name="pref_cat_notif">Notification Options</string>
     <string name="pref_cat_notif_summ">the function of displaying the notifications on your Pebble.</string>
     <string name="pref_notif_screen_on">Notify when screen is on</string>
-    <string name="pref_notif_screen_on_summ">If this is set, then notifications will be sent to the Pebble when the phone\'s screen is on.</string>
+    <string name="pref_notif_screen_on_summ">When checked, notifications will be sent to the pebble even if the phone\'s screen is on.</string>
     <string name="pref_notif_message_scale">Font size on Pebble</string>
     <string name="pref_notif_message_scale_summ">The font is more large, the chars which were displayed on the Pebble screen is more few.</string>
     <string name="pref_package_list">Watch List</string>
-    <string name="pref_package_list_summ">Select which App\'s notification your want transmit to Pebble.</string>
+    <string name="pref_package_list_summ">Select the applications that you want to send notifications to your Pebble</string>
     <string name="pref_dnd_time_enabled">Quiet time</string>
-    <string name="pref_dnd_time_enabled_summ">Allows you to prevent any notifications from being sent from Pebble messenger to your Pebble</string>
+    <string name="pref_dnd_time_enabled_summ">When checked, will turn off notifications to your Pebble from Pebble Messenger during the times specified below.</string>
     <string name="pref_dnd_time_before_summ">No notifications before this time</string>
     <string name="pref_dnd_time_before">Quiet time - Not before</string>
     <string name="pref_dnd_time_after_summ">No notifications after this time</string>
@@ -48,18 +48,18 @@
     </string-array>
 
     <string name="pref_cat_call">Call Options</string>
-    <string name="pref_cat_call_summ">Display the incoming calls information on Pebble, and remote control your phone to answer or hang off.</string>
-    <string name="pref_call_enable">Enable incoming calls transmitting</string>
-"        <string name="pref_call_quiet">Use the same Quiet Setting as Pebble-Messenger</string>
+    <string name="pref_cat_call_summ">Send incoming call notification, and remote control your phone to answer or reject the call.</string>
+    <string name="pref_call_enable">Send incoming call notification</string>
+    <string name="pref_call_quiet">Use the same Quiet Setting as Pebble-Messenger</string>
     <string name="pref_call_quiet_summ">If you have set the quiet options above, and want the call messenger keep quiet in same time, check it.</string>
     <string name="pref_call_sms_short">SMS text content for short press</string>
-    <string name="pref_call_sms_short_summ">When the phone call is coming, press middle button of pebble to hang off the call and send a short message to explain you are busy.</string>
+    <string name="pref_call_sms_short_summ">When receiving an incoming call, press the middle button on the Pebble to send a preset text message to the caller and reject the call.</string>
     <string name="pref_call_sms_long">SMS text content for long press</string>
-    <string name="pref_call_sms_long_summ">You can setting another short message, and send it just press middle button of pebble for 0.5 sec</string>
+    <string name="pref_call_sms_long_summ">Same as above, but using a second, different preset message.  Activate by pressing and holding the Pebble\'s middle button for a half second.</string>
     <string name="pref_call_sms_short_default">Sorry! I am busy and call you later.</string>
     <string name="pref_call_sms_long_default">Sorry! I am in a meeting, Send me message or waiting for my call back.</string>
-    <string name="title_setup_activity">Initiation</string>
-    <string name="title_setting_activity">Setting</string>
+    <string name="title_setup_activity">Initial Setup</string>
+    <string name="title_setting_activity">Options</string>
     <string name="title_tools_activity">Tools</string>
     <string name="title_about_activity">About</string>
     <string name="title_activity_navigation">NavigationActivity</string>
@@ -69,7 +69,7 @@
     <string name="hello_world">Hello world!</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
 
     <string name="setup_test_pebble_title">1. Check your Pebble status</string>
@@ -84,11 +84,12 @@
     <string name="setup_check_ok">OK</string>
     <string name="setup_check_empty">Empty</string>
     <string name="setup_check_bad">Bad</string>
+    <string name="setup_check_uncheck">UnCheck</string>
     <string name="setup_check_disconnected">Disconnected</string>
     <string name="setup_watch_list_warning">Please go to [Setting->Watch List] to add app</string>
     <string name="setup_button_goto_setting">Setting->Accessibility</string>
     <string name="setup_button_goto_pebble">Install Pebble APP</string>
-    <string name="setup_button_goto_speech_setting">Setting->Text-to-speech output</string>
+    <string name="setup_button_goto_speech_setting">Test Text-to-speech Engine</string>
     
 
 
@@ -115,5 +116,7 @@
     <string name="test_call_name">Rolex</string>
 
     <string name="seek_null_message">The message you want is no longer exist.</string>
-    <string name="about_text">"Author: Yang Tsao\nDevelop IDE: Android Studio\nMin SDK Version: 4.1.2\nPebble Version: 2.4\nThanks: My wife Meiying Song and My son Gaoge Tsao\n\tTiago R. Espinha, Dattas Moonchaser\nLast: I hope you enjoy this app, if there are any regret about buying, please send me your bill number, I'l refund the money any time.I'm so glad if you feedback some advice. If you like my app, please rating it on google play.\nHelp site: http://yangtsao.wordpress.com\nEmail: yunshansimon@gmail.com"</string>
+    <string name="about_text">"Author: Yang Tsao\nDevelop IDE: Android Studio\nMin SDK Version: 4.1.2\nPebble Version: 2.4\nThanks: My wife Meiying Song and My son Gaoge Tsao\n\tTiago R. Espinha, Dattas Moonchaser\nLast: I hope you enjoy this app, if there are any regret about buying, please send me your bill number, I'l refund the money any time.I'm so glad if you feedback some advice. If you like my app, please rating it on google play.\nHelp site: http://yangtsao.wordpress.com\nEmail: yunshansimon@gmail.com"
+    "\nThanks to Jarrod Kailef for English correction."
+    </string>
 </resources>

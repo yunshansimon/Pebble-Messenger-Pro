@@ -43,6 +43,7 @@ import java.util.ArrayDeque;
 import java.util.Calendar;
 import java.util.Deque;
 import java.util.GregorianCalendar;
+import java.util.regex.Pattern;
 
 import com.yangtsaosoftware.pebblemessenger.Constants;
 import com.yangtsaosoftware.pebblemessenger.R;
@@ -367,12 +368,14 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
 
         private PebbleMessage processMessage(Bundle b){
             String originalMessage;
+            Pattern regex=Pattern.compile("^\\w{2,}");
             if (!isFontDBReady()){
                 Constants.log(TAG_NAME,"Font data base is not ready, processing stop!");
                 originalMessage= getString(R.string.error_fontbase_notready);
             }else {
 
-                originalMessage = b.getString(MessageDbHandler.COL_MESSAGE_CONTENT);
+                originalMessage ='['+ b.getString(MessageDbHandler.COL_MESSAGE_APP)
+                        + ']' + b.getString(MessageDbHandler.COL_MESSAGE_CONTENT);
                 Constants.log(TAG_NAME,"original:" + originalMessage + "\n"
                     + b.getString(MessageDbHandler.COL_MESSAGE_APP) + "\n"
                     + String.valueOf(b.getLong(MessageDbHandler.COL_MESSAGE_ID)));
@@ -403,8 +406,20 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
                         strBd.append(originalMessage.charAt(0));
                     } else {
                         if (col < fChars) {
-                            col++;
-                            strBd.append(originalMessage.charAt(0));
+                            if(col==fChars-1 && regex.matcher(originalMessage).find()){
+                                if (strBd.charAt(strBd.length()-1)==' '){
+                                    strBd.append('\n');
+                                }else{
+                                    strBd.append("-\n");
+                                }
+                                strBd.append(originalMessage.charAt(0));
+                                row++;
+                                col = 1;
+                            }else{
+                                col++;
+                                strBd.append(originalMessage.charAt(0));
+                            }
+
                         } else {
                             strBd.append('\n');
                             strBd.append(originalMessage.charAt(0));
@@ -471,7 +486,7 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
                 }
                 originalMessage = originalMessage.substring(1);
             }
-            message.setAscMsg(strBd.toString());
+            message.setAscMsg(strBd.toString().replaceAll("\\x20+\\n","\n"));
  //           Constants.log(TAG_NAME,"set msg:[" + message.getAscMsg() + "]");
             message.setCharacterQueue(characterQueue);
 

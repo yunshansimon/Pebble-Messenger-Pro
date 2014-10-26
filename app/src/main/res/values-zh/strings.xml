@@ -100,10 +100,11 @@
     <string name="setup_check_empty">列表空</string>
     <string name="setup_check_bad">未通过</string>
     <string name="setup_check_disconnected">未连接</string>
+    <string name="setup_check_uncheck">未检查</string>
     <string name="setup_watch_list_warning">请到Pebble信使[设置->转发程序列表]增加程序</string>
     <string name="setup_button_goto_setting">系统设定->辅助功能</string>
     <string name="setup_button_goto_pebble">安装Pebble端程序</string>
-    <string name="setup_button_goto_speech_setting">系统设定->文字转语音输出</string>
+    <string name="setup_button_goto_speech_setting">检查文字转语音输出引擎</string>
     
 
 

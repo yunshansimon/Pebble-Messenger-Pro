@@ -199,6 +199,7 @@ public class MessageDbHandler extends SQLiteOpenHelper {
         if (cursor.getCount()>0){
             cursor.moveToFirst();
             content.putLong(MessageDbHandler.COL_MESSAGE_ID,Integer.parseInt(ID));
+            content.putString(MessageDbHandler.COL_MESSAGE_APP,cursor.getString(2));
             content.putString(MessageDbHandler.COL_MESSAGE_CONTENT,cursor.getString(3));
             if (cursor.getString(4).equalsIgnoreCase(NEW_ICON)) {
                 ContentValues values = new ContentValues();

@@ -93,12 +93,12 @@ public class SetupFragment extends Fragment implements TextToSpeech.OnInitListen
         btGotoSpeech.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA));
+                Intent checkIntent=new Intent();
+                checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+                getActivity().startActivityFromFragment(SetupFragment.this,checkIntent,3);
             }
         });
-        Intent checkIntent=new Intent();
-        checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
-        getActivity().startActivityFromFragment(SetupFragment.this,checkIntent,3);
+
         return setupView;
     }
 
