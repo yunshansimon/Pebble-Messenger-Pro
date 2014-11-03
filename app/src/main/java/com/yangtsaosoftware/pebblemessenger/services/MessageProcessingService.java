@@ -447,7 +447,7 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
                         originalHex = font.getHex();
                     }
 
-                    CharacterMatrix c = new CharacterMatrix(originalHex);
+                    CharacterMatrix c = new CharacterMatrix(originalHex,codepoint);
 
                     if (c.getWidthBytes() == 2) {
                         if (col < (fChars-1)) {
@@ -555,7 +555,7 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
                         originalHex = font.getHex();
                     }
 
-                    CharacterMatrix c = new CharacterMatrix(originalHex);
+                    CharacterMatrix c = new CharacterMatrix(originalHex,codepoint);
 
                     if (c.getWidthBytes() == 2) {
                         if (col < 7) {

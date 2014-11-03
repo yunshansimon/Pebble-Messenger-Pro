@@ -49,6 +49,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -153,6 +155,8 @@ public class PebbleCenter extends Service {
     private static final int ID_CHAR_SCALE=10;
     private static final int ID_INFO_ID=11;
     private static final int ID_PHONE_NUM=12;
+    private static final int ID_EXTRA_POS_NUM=100;
+    private static final int ID_EXTRA_POS_BEGIN=100;
 
     private static final String TAG_NAME="PebbleCenter";
 
@@ -628,6 +632,8 @@ public class PebbleCenter extends Service {
             dataMsg.addUint8(ID_PACKAGE_NUM,(byte) 1);
 
         sendQueue.add(dataMsg);
+        HashMap  unicodeMap=new HashMap();
+
         Constants.log(TAG_NAME,"listpm.size:"+ String.valueOf(listPM.size()));
         for(int page=1;page<=listPM.size();page++){
             PebbleMessage dealPM=listPM.get(page-1);
@@ -639,33 +645,59 @@ public class PebbleCenter extends Service {
                 dataMsg.addUint8(ID_COMMAND,REMOTE_EXCUTE_CONTINUE_MESSAGE);
                 dataMsg.addUint8(ID_TOTAL_PAGES,(byte)listPM.size());
                 dataMsg.addUint8(ID_PAGE_NUM,(byte)page);
-                dataMsg.addUint8(ID_TOTAL_PACKAGES,totalPackages);
-                dataMsg.addUint8(ID_PACKAGE_NUM,(byte) pg);
+         //       dataMsg.addUint8(ID_TOTAL_PACKAGES,totalPackages);
+         //       dataMsg.addUint8(ID_PACKAGE_NUM,(byte) pg);
                 dataMsg.addString(ID_ASCSTR,dealPM.getAscMsg().substring((pg-1)*MAX_CHARS_PACKAGE_CONTAIN,
                         (pg*MAX_CHARS_PACKAGE_CONTAIN> dealPM.getAscMsg().length()? (dealPM.getAscMsg().length()) : (pg*MAX_CHARS_PACKAGE_CONTAIN))
                 ));
                 Constants.log(TAG_NAME,"Add Queue a strmsg:[" + dataMsg.getString(ID_ASCSTR) +"]" + " packagenum=" + String.valueOf(dataMsg.getUnsignedInteger(ID_PACKAGE_NUM)));
-                sendQueue.add(dataMsg);
+                unicodeMap.put(pg,dataMsg);
             }
             for (int pg=strPackages+1;pg<=totalPackages;pg++){
-                dataMsg=new PebbleDictionary();
-                dataMsg.addUint8(ID_COMMAND,REMOTE_EXCUTE_CONTINUE_MESSAGE);
-                dataMsg.addUint8(ID_TOTAL_PAGES,(byte)listPM.size());
-                dataMsg.addUint8(ID_PAGE_NUM,(byte)page);
-                dataMsg.addUint8(ID_TOTAL_PACKAGES,totalPackages);
-                dataMsg.addUint8(ID_PACKAGE_NUM,(byte) pg);
-                Constants.log(TAG_NAME,"There are " + String.valueOf(dealPM.getCharacterQueue().size()) + "unicode in queue");
                 CharacterMatrix cm=dealPM.getCharacterQueue().pollFirst();
-                int size = cm.getByteList().size();
-                byte[] b2 = new byte[size];
-                cm.getbyteArray(b2,size);
-                dataMsg.addUint8(ID_UNICHR_WIDTH,(byte) cm.getWidthBytes());
-                dataMsg.addBytes(ID_UNICHR_POS,cm.getPos());
-                Constants.log(TAG_NAME,"row:" + String.valueOf(cm.getPos()[0]) + " col:" + String.valueOf(cm.getPos()[1]));
-                dataMsg.addBytes(ID_UNICHR_BYTES, b2);
-                Constants.log(TAG_NAME,"b2 length:" + String.valueOf(b2.length));
-                Constants.log(TAG_NAME,"Add Queue a unimsg:" + dataMsg.getUnsignedInteger(ID_PACKAGE_NUM).toString());
-                sendQueue.add(dataMsg);
+                PebbleDictionary duoPD=(PebbleDictionary)unicodeMap.get(cm.getCode());
+                if (duoPD==null){
+                    dataMsg=new PebbleDictionary();
+                    dataMsg.addUint8(ID_COMMAND,REMOTE_EXCUTE_CONTINUE_MESSAGE);
+                    dataMsg.addUint8(ID_TOTAL_PAGES,(byte)listPM.size());
+                    dataMsg.addUint8(ID_PAGE_NUM,(byte)page);
+                    //        dataMsg.addUint8(ID_TOTAL_PACKAGES,totalPackages);
+                    //dataMsg.addUint8(ID_PACKAGE_NUM,(byte) pg);
+                    Constants.log(TAG_NAME,"There are " + String.valueOf(dealPM.getCharacterQueue().size()) + "unicode in queue");
+                    int size = cm.getByteList().size();
+                    byte[] b2 = new byte[size];
+                    cm.getbyteArray(b2,size);
+                    dataMsg.addUint8(ID_UNICHR_WIDTH,(byte) cm.getWidthBytes());
+                    dataMsg.addBytes(ID_UNICHR_POS,cm.getPos());
+                    Constants.log(TAG_NAME,"row:" + String.valueOf(cm.getPos()[0]) + " col:" + String.valueOf(cm.getPos()[1]));
+                    dataMsg.addBytes(ID_UNICHR_BYTES, b2);
+                    Constants.log(TAG_NAME,"b2 length:" + String.valueOf(b2.length));
+            //        Constants.log(TAG_NAME,"Add Queue a unimsg:" + dataMsg.getUnsignedInteger(ID_PACKAGE_NUM).toString());
+                    unicodeMap.put(cm.getCode(),dataMsg);
+                }else{
+                    if(duoPD.contains(ID_EXTRA_POS_NUM)) {
+                        int num=duoPD.getUnsignedInteger(ID_EXTRA_POS_NUM).intValue();
+                        num+=1;
+                        duoPD.addBytes(ID_EXTRA_POS_BEGIN+num,cm.getPos());
+                        duoPD.addUint8(ID_EXTRA_POS_NUM, (byte) num);
+                        Constants.log("count","PD num:"+ String.valueOf(ID_EXTRA_POS_BEGIN+num));
+                    }else{
+                        duoPD.addBytes(ID_EXTRA_POS_BEGIN+1,cm.getPos());
+                        duoPD.addUint8(ID_EXTRA_POS_NUM, (byte)1);
+
+                    }
+                }
+
+            }
+
+            totalPackages=(byte)unicodeMap.size();
+            Iterator it=unicodeMap.keySet().iterator();
+            int i=0;
+            while(it.hasNext()){
+                PebbleDictionary tmpPD=(PebbleDictionary)unicodeMap.get(it.next());
+                tmpPD.addUint8(ID_TOTAL_PACKAGES, totalPackages);
+                tmpPD.addUint8(ID_PACKAGE_NUM,(byte)++i);
+                sendQueue.add(tmpPD);
             }
 
         }

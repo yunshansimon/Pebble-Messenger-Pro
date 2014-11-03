@@ -10,10 +10,11 @@ public class CharacterMatrix {
     private  List<Byte> _byteList;
     private  int        _widthBytes;
     private  byte[]     _pos;
+    private  int        _code;
 
     // the row,col position of the character at the pebble screen(10,9~18)
 
-    public  CharacterMatrix(String hex) {
+    public  CharacterMatrix(String hex,int code) {
         // 0.03125 sets the ration between the length of the hex representation
         // (64 or 32 char)
         // versus character width (2 or 1 byte respectively)
@@ -21,7 +22,7 @@ public class CharacterMatrix {
         this._pos = new byte[2];
         // Array is hex, two hex chars => byte, so the size is /2
         this._byteList = new ArrayList<Byte>(hex.length() / 2);
-
+        this._code=code;
         if (this._widthBytes == 2) {
             while (hex.length() > 0) {
                 String temp = hex.substring(0, 4);
@@ -87,6 +88,10 @@ public class CharacterMatrix {
         for (int i = 0; i < size; i++) {
             buff[i] = _byteList.get(i);
         }
+    }
+
+    public int getCode(){
+        return this._code;
     }
 /*
    public String x_getBinaryRepresentation() {
