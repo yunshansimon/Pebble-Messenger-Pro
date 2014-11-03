@@ -156,7 +156,7 @@ public class PebbleCenter extends Service {
     private static final int ID_INFO_ID=11;
     private static final int ID_PHONE_NUM=12;
     private static final int ID_EXTRA_POS_NUM=100;
-    private static final int ID_EXTRA_POS_BEGIN=100;
+
 
     private static final String TAG_NAME="PebbleCenter";
 
@@ -650,7 +650,7 @@ public class PebbleCenter extends Service {
                 dataMsg.addString(ID_ASCSTR,dealPM.getAscMsg().substring((pg-1)*MAX_CHARS_PACKAGE_CONTAIN,
                         (pg*MAX_CHARS_PACKAGE_CONTAIN> dealPM.getAscMsg().length()? (dealPM.getAscMsg().length()) : (pg*MAX_CHARS_PACKAGE_CONTAIN))
                 ));
-                Constants.log(TAG_NAME,"Add Queue a strmsg:[" + dataMsg.getString(ID_ASCSTR) +"]" + " packagenum=" + String.valueOf(dataMsg.getUnsignedInteger(ID_PACKAGE_NUM)));
+                Constants.log(TAG_NAME,"Add Queue a strmsg:<" + dataMsg.getString(ID_ASCSTR) +">");
                 unicodeMap.put(pg,dataMsg);
             }
             for (int pg=strPackages+1;pg<=totalPackages;pg++){
@@ -676,15 +676,23 @@ public class PebbleCenter extends Service {
                     unicodeMap.put(cm.getCode(),dataMsg);
                 }else{
                     if(duoPD.contains(ID_EXTRA_POS_NUM)) {
-                        int num=duoPD.getUnsignedInteger(ID_EXTRA_POS_NUM).intValue();
-                        num+=1;
-                        duoPD.addBytes(ID_EXTRA_POS_BEGIN+num,cm.getPos());
-                        duoPD.addUint8(ID_EXTRA_POS_NUM, (byte) num);
-                        Constants.log("count","PD num:"+ String.valueOf(ID_EXTRA_POS_BEGIN+num));
-                    }else{
-                        duoPD.addBytes(ID_EXTRA_POS_BEGIN+1,cm.getPos());
-                        duoPD.addUint8(ID_EXTRA_POS_NUM, (byte)1);
+                        byte [] soubyte=duoPD.getBytes(ID_EXTRA_POS_NUM);
+                        byte num=soubyte[0];
+                        byte [] tarbyte=new byte[num+2];
+                        tarbyte[0]= (byte) (num+1);
+                        for (int i=1;i<=num;i++){
+                            tarbyte[i]=soubyte[i];
+                        }
+                        tarbyte[num+1] |=(cm.getPos()[1]-1)<<4;
+                        tarbyte[num+1] |=(cm.getPos()[0]-1);
+                        duoPD.addBytes(ID_EXTRA_POS_NUM,tarbyte);
 
+                    }else{
+                        byte[] tmpbyte=new byte[2];
+                        tmpbyte[0]=1;
+                        tmpbyte[1] |=(cm.getPos()[1]-1)<<4;
+                        tmpbyte[1] |=(cm.getPos()[0]-1);
+                        duoPD.addBytes(ID_EXTRA_POS_NUM,tmpbyte);
                     }
                 }
 
@@ -699,7 +707,7 @@ public class PebbleCenter extends Service {
                 tmpPD.addUint8(ID_PACKAGE_NUM,(byte)++i);
                 sendQueue.add(tmpPD);
             }
-
+            unicodeMap.clear();
         }
         sendLock.unlock();
     }

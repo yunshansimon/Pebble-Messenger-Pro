@@ -31,7 +31,7 @@ public class Constants {
     //----------------------------------------
 
     //system
-    public static final boolean IS_LOGGABLE                           = true;
+    public static final boolean IS_LOGGABLE                           = false;
     public static final String  DATABASE_READY                        = "status_database_ready";
     //----------------------------------------
 
