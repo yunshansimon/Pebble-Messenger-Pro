@@ -121,7 +121,7 @@
     <string name="test_call_name">Rolex</string>
 
     <string name="seek_null_message">The message you want is no longer exist.</string>
-    <string name="about_text">"Author: Yang Tsao\nDevelop IDE: Android Studio\nMin SDK Version: 4.1.2\nPebble Version: 2.4\nThanks: My wife Meiying Song and My son Gaoge Tsao\n\tTiago R. Espinha, Dattas Moonchaser\nLast: I hope you enjoy this app, if there are any regret about buying, please send me your bill number, I'l refund the money any time.I'm so glad if you feedback some advice. If you like my app, please rating it on google play.\nHelp site: http://yangtsao.wordpress.com\nEmail: yunshansimon@gmail.com"
+    <string name="about_text">"Author: Yang Tsao\nDevelop IDE: Android Studio\nMin SDK Version: 4.1.2\nPebble firmware Version: 2.7\nThanks: My wife Meiying Song and My son Gaoge Tsao\n\tTiago R. Espinha, Dattas Moonchaser\nLast: I hope you enjoy this app, if there are any regret about buying, please send me your bill number, I'l refund the money any time.I'm so glad if you feedback some advice. If you like my app, please rating it on google play.\nHelp site: http://yangtsao.wordpress.com\nEmail: yunshansimon@gmail.com"
     "\nThanks to Jarrod Kailef for English correction."
     </string>
 </resources>
