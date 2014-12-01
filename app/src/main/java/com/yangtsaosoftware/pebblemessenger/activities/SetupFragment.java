@@ -19,8 +19,10 @@ package com.yangtsaosoftware.pebblemessenger.activities;
 
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -28,17 +30,20 @@ import android.app.Fragment;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.speech.tts.TextToSpeech;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.getpebble.android.kit.PebbleKit;
 
 import com.yangtsaosoftware.pebblemessenger.Constants;
 import com.yangtsaosoftware.pebblemessenger.R;
+import com.yangtsaosoftware.pebblemessenger.services.PebbleCenter;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -51,12 +56,15 @@ public class SetupFragment extends Fragment implements TextToSpeech.OnInitListen
     private TextView tvWatchList;
     private TextView tvFontStatus;
     private TextView tvSpeechEngine;
+    private TextView tvCheckPebbleFirmwareResult;
+    private TextView tvCheckPmpResult;
     private Button btGotoSpeech;
     private Button btGotoSetting;
     private Button btGotoPebble;
+    private Button btCheckPmp;
     private Context _context;
-
     private TextToSpeech myTTS;
+    private ProgressBar myProgress;
 
     public SetupFragment() {
         // Required empty public constructor
@@ -73,6 +81,8 @@ public class SetupFragment extends Fragment implements TextToSpeech.OnInitListen
         tvWatchList=(TextView) setupView.findViewById(R.id.text_watch_list);
         tvFontStatus=(TextView) setupView.findViewById(R.id.text_font_base);
         tvSpeechEngine=(TextView) setupView.findViewById(R.id.text_speech_engine);
+        tvCheckPebbleFirmwareResult=(TextView) setupView.findViewById(R.id.text_test_firmware_result);
+        tvCheckPmpResult=(TextView) setupView.findViewById(R.id.text_check_pmp_result);
         btGotoSetting=(Button) setupView.findViewById(R.id.button_goto_setting);
         btGotoSetting.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -98,6 +108,17 @@ public class SetupFragment extends Fragment implements TextToSpeech.OnInitListen
                 getActivity().startActivityFromFragment(SetupFragment.this,checkIntent,3);
             }
         });
+        myProgress=(ProgressBar) setupView.findViewById(R.id.progressBar);
+        btCheckPmp=(Button) setupView.findViewById(R.id.button_check_pmp);
+        btCheckPmp.setOnClickListener(new View.OnClickListener(){
+            @Override
+        public void onClick(View view){
+                myProgress.setVisibility(ProgressBar.VISIBLE);
+                Intent inner_intent=new Intent(PebbleCenter.class.getName());
+                inner_intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_PEBBLE_TEST);
+                LocalBroadcastManager.getInstance(_context).sendBroadcast(inner_intent);
+            }
+        });
 
         return setupView;
     }
@@ -107,6 +128,25 @@ public class SetupFragment extends Fragment implements TextToSpeech.OnInitListen
         super.onAttach(activity);
         ((NavigationActivity) activity).onSectionAttached(positionIndex);
         _context=activity.getApplicationContext();
+        BroadcastReceiver br= new BroadcastReceiver(){
+          @Override
+        public void onReceive(Context context, Intent intent) {
+              myProgress.setVisibility(ProgressBar.GONE);
+              byte[] command=intent.getByteArrayExtra(Constants.BROADCAST_VERSION);
+              boolean result=true;
+              if (command==null || command[0]< Constants.PEBBLE_VERSION[0]){
+                result=false;
+              }else if(command[1]<Constants.PEBBLE_VERSION[1]){
+                  result=false;
+              }else if(command[2]<Constants.PEBBLE_VERSION[2]){
+                  result=false;
+              }
+              tvCheckPmpResult.setTextColor(result? Color.WHITE: Color.RED);
+              tvCheckPmpResult.setText(result? R.string.setup_check_ok :R.string.setup_check_result_need_update);
+          }
+        };
+        IntentFilter intentFilter=new IntentFilter(SetupFragment.class.getName());
+        LocalBroadcastManager.getInstance(_context).registerReceiver(br,intentFilter);
     }
 
     private boolean isPebbleOk(Context context){
@@ -157,6 +197,21 @@ public class SetupFragment extends Fragment implements TextToSpeech.OnInitListen
         return PreferenceManager.getDefaultSharedPreferences(context).getBoolean(Constants.DATABASE_READY,false);
     }
 
+    private boolean isPebbleFirmwareOk(Context context){
+        PebbleKit.FirmwareVersionInfo info=PebbleKit.getWatchFWVersion(context);
+      //  Constants.log("GetWatchVersion", info.getTag() + " major:"+ String.valueOf(info.getMajor())+ " minor:"+ String.valueOf(info.getMinor())+ " point:"+ String.valueOf(info.getPoint()));
+
+        if(info.getMajor()<(int)Constants.PEBBLE_FIRMWARE[0]){
+            return false;
+        }else if(info.getMinor()<(int)Constants.PEBBLE_FIRMWARE[1]){
+            return false;
+        }else if(info.getPoint()<(int)Constants.PEBBLE_FIRMWARE[2]){
+            return false;
+        }else{
+            return true;
+        }
+    }
+
     @Override
     public void onResume() {
         super.onResume();
@@ -174,6 +229,11 @@ public class SetupFragment extends Fragment implements TextToSpeech.OnInitListen
             tvAccessStatus.setText(R.string.setup_check_bad);
             tvAccessStatus.setTextColor(Color.RED);
         }
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         if (isWatchListEmpty(_context)){
             tvWatchList.setText(R.string.setup_check_ok);
             tvWatchList.setTextColor(Color.WHITE);
@@ -188,7 +248,9 @@ public class SetupFragment extends Fragment implements TextToSpeech.OnInitListen
             tvFontStatus.setText(R.string.setup_check_bad);
             tvFontStatus.setTextColor(Color.RED);
         }
-
+        boolean result=isPebbleFirmwareOk(_context);
+        tvCheckPebbleFirmwareResult.setTextColor(result? Color.WHITE:Color.RED);
+        tvCheckPebbleFirmwareResult.setText(result? R.string.setup_check_ok:R.string.setup_check_result_need_update);
     }
 
     @Override

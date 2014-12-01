@@ -55,14 +55,18 @@ public class CallStateHandler extends BroadcastReceiver {
             LocalBroadcastManager.getInstance(context).sendBroadcast(inner_intent);
         }else if(TelephonyManager.EXTRA_STATE_IDLE.equals(state)){
             Constants.log(LOG_TAG, "Call is idle");
-
-            Intent inner_intent=new Intent(PebbleCenter.class.getName());
+            Intent inner_intent=new Intent(MessageProcessingService.class.getName());
+            inner_intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_CALL_IDLE);
+            LocalBroadcastManager.getInstance(context).sendBroadcast(inner_intent);
+            inner_intent=new Intent(PebbleCenter.class.getName());
             inner_intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_CALL_IDLE);
             LocalBroadcastManager.getInstance(context).sendBroadcast(inner_intent);
         }else if(TelephonyManager.EXTRA_STATE_OFFHOOK.equals(state)){
             Constants.log(LOG_TAG, "Call is off hook");
-
             Intent inner_intent=new Intent(PebbleCenter.class.getName());
+            inner_intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_CALL_HOOK);
+            LocalBroadcastManager.getInstance(context).sendBroadcast(inner_intent);
+            inner_intent=new Intent(MessageProcessingService.class.getName());
             inner_intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_CALL_HOOK);
             LocalBroadcastManager.getInstance(context).sendBroadcast(inner_intent);
         }

@@ -58,6 +58,8 @@
     <string name="pref_call_sms_long_summ">Same as above, but using a second, different preset message.  Activate by pressing and holding the Pebble\'s middle button for a half second.</string>
     <string name="pref_call_sms_short_default">Sorry! I am busy and call you later.</string>
     <string name="pref_call_sms_long_default">Sorry! I am in a meeting, Send me message or waiting for my call back.</string>
+    <string name="pref_black_background">Set black background style</string>
+    <string name="pref_black_background_summ">Check for black background and white chars on Pebble\'s screen.</string>
     <string name="title_setup_activity">Initial Setup</string>
     <string name="title_setting_activity">Options</string>
     <string name="title_tools_activity">Tools</string>
@@ -73,11 +75,12 @@
     <string name="cancel">Cancel</string>
 
     <string name="setup_test_pebble_title">1. Check your Pebble status</string>
-    <string name="setup_accessibility_service_title">2. Enable accessibility service</string>
-    <string name="setup_install_pebble_app">3. Install Pebble app</string>
-    <string name="setup_watch_list">4. Check Watch List</string>
-    <string name="setup_font_base_status">5. Font data base status</string>
-    <string name="setup_tts_engine">6. The system speech engine:</string>
+    <string name="setup_test_pebble_firmware">2. Check your Pebble firmware version</string>
+    <string name="setup_accessibility_service_title">3. Enable accessibility service</string>
+    <string name="setup_install_pebble_app">4. Check PebbleMsgPro status</string>
+    <string name="setup_watch_list">5. Check Watch List</string>
+    <string name="setup_font_base_status">6. Font data base status</string>
+    <string name="setup_tts_engine">7. The system speech engine:</string>
     <string name="setup_tts_default_locale">Language:</string>
     <string name="setup_tts_failed">The speech engine is failed, your pebble will not read the notification</string>
 
@@ -85,10 +88,12 @@
     <string name="setup_check_empty">Empty</string>
     <string name="setup_check_bad">Bad</string>
     <string name="setup_check_uncheck">UnCheck</string>
+    <string name="setup_check_result_need_update">The Version is lower than demand, please go to Pebble App and update</string>
     <string name="setup_check_disconnected">Disconnected</string>
     <string name="setup_watch_list_warning">Please go to [Setting->Watch List] to add app</string>
     <string name="setup_button_goto_setting">Setting->Accessibility</string>
-    <string name="setup_button_goto_pebble">Install Pebble APP</string>
+    <string name="setup_button_check_pebble_app">Check PebbleMsgPro on Pebble</string>
+    <string name="setup_button_goto_pebble">Install/update PebbleMsgPro on Pebble</string>
     <string name="setup_button_goto_speech_setting">Test Text-to-speech Engine</string>
     
 

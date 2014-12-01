@@ -78,7 +78,7 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
     public static final String PROCEED_CALL="proceed_call";
     private TextToSpeech myTTS;
     private boolean myTTSisOK;
-
+    private boolean phone_is_ontalking;
 
     public MessageProcessingService() {
     }
@@ -116,7 +116,7 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
     @Override
     public void onCreate() {
         super.onCreate();
-
+        phone_is_ontalking=false;
         loadPrefs();
         Thread proceedthread = new ProcessThread();
         proceedthread.start();
@@ -160,13 +160,29 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
                             }
                         }else{
                             Bundle b=new Bundle();
-                            b.putLong(MessageDbHandler.COL_CALL_ID, addNewCall(number,name,MessageDbHandler.OLD_ICON));
-                            b.putString(MessageDbHandler.COL_CALL_NUMBER, number);
-                            b.putString(MessageDbHandler.COL_CALL_NAME,name);
-                            Message innerMsg=processHandler.obtainMessage(INNER_CALL_PROCEED);
-                            innerMsg.setData(b);
-                            processHandler.sendMessage(innerMsg);
+                            if (phone_is_ontalking){
+                                b.putString(MessageDbHandler.COL_MESSAGE_APP,"Call");
+                                b.putString(MessageDbHandler.COL_MESSAGE_CONTENT,name+"\n"+number);
+                                addNewCall(number,name,MessageDbHandler.NEW_ICON);
+                                b.putLong(MessageDbHandler.COL_MESSAGE_ID,addNewMessage(b,MessageDbHandler.OLD_ICON));
+                                Message innerMsg=processHandler.obtainMessage(INNER_MESSAGE_PROCEED);
+                                innerMsg.setData(b);
+                                processHandler.sendMessage(innerMsg);
+                            }else {
+                                b.putLong(MessageDbHandler.COL_CALL_ID, addNewCall(number, name, MessageDbHandler.OLD_ICON));
+                                b.putString(MessageDbHandler.COL_CALL_NUMBER, number);
+                                b.putString(MessageDbHandler.COL_CALL_NAME, name);
+                                Message innerMsg = processHandler.obtainMessage(INNER_CALL_PROCEED);
+                                innerMsg.setData(b);
+                                processHandler.sendMessage(innerMsg);
+                            }
                         }
+                        break;
+                    case Constants.BROADCAST_CALL_HOOK:
+                        phone_is_ontalking=true;
+                        break;
+                    case Constants.BROADCAST_CALL_IDLE:
+                        phone_is_ontalking=false;
                         break;
                 }
             }
@@ -206,8 +222,8 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
 
             Constants.log(TAG_NAME,"New msg arrived. what:" + String.valueOf(msg.what));
             switch (msg.what){
-                case MSG_NEW_MESSAGE:
-
+                case MSG_NEW_MESSAGE: {
+                    Bundle b = msg.getData();
                     if (quiet_hours) {
                         Calendar c = Calendar.getInstance();
                         Calendar now = new GregorianCalendar(0, 0, 0, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE));
@@ -215,21 +231,22 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
                                 + quiet_hours_before.toString() + " and " + quiet_hours_after.toString());
                         if (now.before(quiet_hours_before) || now.after(quiet_hours_after)) {
                             Constants.log(TAG_NAME, "Time is before or after the quiet hours time. Returning.");
-                            addNewMessage(msg.getData(), MessageDbHandler.NEW_ICON);
+                            addNewMessage(b, MessageDbHandler.NEW_ICON);
                         } else {
-                            Bundle b= msg.getData();
-                            b.putLong(MessageDbHandler.COL_MESSAGE_ID,addNewMessage(msg.getData(), MessageDbHandler.OLD_ICON));
-                            Message innerMsg=processHandler.obtainMessage(INNER_MESSAGE_PROCEED);
+
+                            b.putLong(MessageDbHandler.COL_MESSAGE_ID, addNewMessage(b, MessageDbHandler.OLD_ICON));
+                            Message innerMsg = processHandler.obtainMessage(INNER_MESSAGE_PROCEED);
                             innerMsg.setData(b);
                             processHandler.sendMessage(innerMsg);
                         }
-                    }else{
-                        Bundle b=msg.getData();
-                        b.putLong(MessageDbHandler.COL_MESSAGE_ID,addNewMessage(msg.getData(), MessageDbHandler.OLD_ICON));
-                        Message innerMsg=processHandler.obtainMessage(INNER_MESSAGE_PROCEED);
+                    } else {
+
+                        b.putLong(MessageDbHandler.COL_MESSAGE_ID, addNewMessage(b, MessageDbHandler.OLD_ICON));
+                        Message innerMsg = processHandler.obtainMessage(INNER_MESSAGE_PROCEED);
                         innerMsg.setData(b);
                         processHandler.sendMessage(innerMsg);
                     }
+                }
                     break;
 
                 case MSG_MESSAGE_READY: {
@@ -260,9 +277,9 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
                 {
                     Message msgToPebble=Message.obtain();
                     msgToPebble.what=PebbleCenter.PEBBLE_SEND_MESSAGE_TABLE;
-                    Bundle b=new Bundle();
-                    b.putString(MessageDbHandler.TABLE_MESSAGE_NAME, mdb.getTable(MessageDbHandler.TABLE_MESSAGE_NAME,1,10));
-                    msgToPebble.setData(b);
+                    Bundle c=new Bundle();
+                    c.putString(MessageDbHandler.TABLE_MESSAGE_NAME, mdb.getTable(MessageDbHandler.TABLE_MESSAGE_NAME,1,10));
+                    msgToPebble.setData(c);
                     try {
                         rPebbleCenter.send(msgToPebble);
                     } catch (RemoteException e) {
@@ -274,9 +291,9 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
                 {
                     Message msgToPebble=Message.obtain();
                     msgToPebble.what=PebbleCenter.PEBBLE_SEND_CALL_TABLE;
-                    Bundle b=new Bundle();
-                    b.putString(MessageDbHandler.TABLE_CALL_NAME, mdb.getTable(MessageDbHandler.TABLE_CALL_NAME,1,10));
-                    msgToPebble.setData(b);
+                    Bundle c=new Bundle();
+                    c.putString(MessageDbHandler.TABLE_CALL_NAME, mdb.getTable(MessageDbHandler.TABLE_CALL_NAME,1,10));
+                    msgToPebble.setData(c);
                     try {
                         rPebbleCenter.send(msgToPebble);
                     } catch (RemoteException e) {
@@ -287,33 +304,40 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
                 case MSG_GET_MESSAGE:
                 {
                     Message innerMsg=processHandler.obtainMessage(INNER_MESSAGE_PROCEED);
-                    Bundle b=mdb.getColMessageContent(msg.getData().getString(MessageDbHandler.COL_MESSAGE_ID));
-                    if (b==null){
-                        b=new Bundle();
-                        b.putString(MessageDbHandler.COL_MESSAGE_CONTENT,getString(R.string.messagedbhandler_message_no_more_keep));
+                    Bundle c=mdb.getColMessageContent(msg.getData().getString(MessageDbHandler.COL_MESSAGE_ID));
+                    if (c==null){
+                        c=new Bundle();
+                        c.putString(MessageDbHandler.COL_MESSAGE_APP,"WARNING");
+                        c.putString(MessageDbHandler.COL_MESSAGE_CONTENT,getString(R.string.messagedbhandler_message_no_more_keep));
+                        c.putLong(MessageDbHandler.COL_MESSAGE_ID,addNewMessage(c,MessageDbHandler.OLD_ICON));
+                    }
+                    innerMsg.setData(c);
+                    processHandler.sendMessage(innerMsg);
+                }
+                    break;
+                case MSG_GET_CALL: {
+                    Message innerMsg = processHandler.obtainMessage(INNER_CALL_PROCEED);
+                    Bundle b = mdb.getCall(msg.getData().getString(MessageDbHandler.COL_CALL_ID));
+                    if (b == null) {
+                        b = new Bundle();
+                        b.putString(MessageDbHandler.COL_MESSAGE_APP,"WARNING");
+                        b.putString(MessageDbHandler.COL_MESSAGE_CONTENT, getString(R.string.messagedbhandler_message_no_more_keep));
+                        b.putLong(MessageDbHandler.COL_MESSAGE_ID,addNewMessage(b,MessageDbHandler.OLD_ICON));
+                        innerMsg.what = INNER_MESSAGE_PROCEED;
                     }
                     innerMsg.setData(b);
                     processHandler.sendMessage(innerMsg);
                 }
                     break;
-                case MSG_GET_CALL:
-                    Message innerMsg=processHandler.obtainMessage(INNER_CALL_PROCEED);
-                    Bundle b=mdb.getCall(msg.getData().getString(MessageDbHandler.COL_CALL_ID));
-                    if (b==null){
-                        b=new Bundle();
-                        b.putString(MessageDbHandler.COL_MESSAGE_CONTENT,getString(R.string.messagedbhandler_message_no_more_keep));
-                        innerMsg.what=INNER_MESSAGE_PROCEED;
-                    }
-                    innerMsg.setData(b);
-                    processHandler.sendMessage(innerMsg);
-                    break;
                 case MSG_CLEAN:
                     mdb.rebuildAll();
                     break;
-                case MSG_READ:
-                    Constants.log(TAG_NAME,"Seek and read msg"+ msg.getData().getString(MessageDbHandler.COL_MESSAGE_ID));
-                    Bundle bd=mdb.getColMessageContent(msg.getData().getString(MessageDbHandler.COL_MESSAGE_ID));
-                    if (myTTSisOK) myTTS.speak(bd.getString(MessageDbHandler.COL_MESSAGE_CONTENT),TextToSpeech.QUEUE_FLUSH,null);
+                case MSG_READ: {
+                    Constants.log(TAG_NAME, "Seek and read msg" + msg.getData().getString(MessageDbHandler.COL_MESSAGE_ID));
+                    Bundle bd = mdb.getColMessageContent(msg.getData().getString(MessageDbHandler.COL_MESSAGE_ID));
+                    if (myTTSisOK && (bd!= null))
+                        myTTS.speak(bd.getString(MessageDbHandler.COL_MESSAGE_CONTENT), TextToSpeech.QUEUE_FLUSH, null);
+                }
                     break;
                 case MSG_MAKE_CALL:
                     break;
@@ -323,11 +347,7 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
             }
         }
 
-        private Long addNewMessage(Bundle b, String icon){
-            Time nowTime= new Time();
-            nowTime.setToNow();
-            return mdb.addMessage(nowTime,b.getString(MessageDbHandler.COL_MESSAGE_APP),b.getString(MessageDbHandler.COL_MESSAGE_CONTENT),icon);
-        }
+
 
 
     }
@@ -654,5 +674,9 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
         nowTime.setToNow();
         return mdb.addCall(nowTime,number ,name,icon);
     }
-
+    private Long addNewMessage(Bundle b, String icon){
+        Time nowTime= new Time();
+        nowTime.setToNow();
+        return mdb.addMessage(nowTime,b.getString(MessageDbHandler.COL_MESSAGE_APP),b.getString(MessageDbHandler.COL_MESSAGE_CONTENT),icon);
+    }
 }

@@ -9,7 +9,11 @@
             android:defaultValue=""
             android:title="@string/pref_package_list"
             android:summary="@string/pref_package_list_summ" />
-
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="pref_black_background"
+            android:summary="@string/pref_black_background_summ"
+            android:title="@string/pref_black_background" />
         <ListPreference
             android:key="pref_notif_timeout"
             android:title="@string/pref_notif_timeout"

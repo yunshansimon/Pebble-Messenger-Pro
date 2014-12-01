@@ -47,6 +47,7 @@ public class Constants {
     public static final String  PREFERENCE_QUIET_HOURS_BEFORE         = "pref_dnd_time_before";
     public static final String  PREFERENCE_QUIET_HOURS_AFTER          = "pref_dnd_time_after";
     public static final String  PREFERENCE_MIN_NOTIFICATION_WAIT      = "pref_notif_timeout";
+    public static final String  PREFERENCE_BLACK_BACKGROUND           = "pref_black_background";
     //----------------------------------------
 
     //two sets parameters of message characters
@@ -67,8 +68,13 @@ public class Constants {
     public static final int BROADCAST_CALL_INCOMING=2;
     public static final int BROADCAST_CALL_IDLE=3;
     public static final int BROADCAST_CALL_HOOK=4;
+    public static final int BROADCAST_PEBBLE_TEST=5;
+    public static final int BROADCAST_PEBBLE_VERSION=6;
     public static final String BROADCAST_PHONE_NUM="phonenum";
     public static final String BROADCAST_NAME="name";
+    public static final String BROADCAST_VERSION="version";
+    public static final byte[] PEBBLE_VERSION={2,2,0};
+    public static final byte[] PEBBLE_FIRMWARE={2,7,0};
 
     //Pebble app communication
     public static final UUID PEBBLE_UUID= UUID.fromString("2d0b18b1-0ee6-41ca-9579-a0c4c6568d93");

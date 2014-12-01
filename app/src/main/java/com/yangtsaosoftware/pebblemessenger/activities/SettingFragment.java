@@ -121,6 +121,10 @@ private static final int positionIndex=1;
             Intent intent=new Intent(PebbleCenter.class.getName());
             intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_PREFER_CHANGED);
             LocalBroadcastManager.getInstance(_context).sendBroadcast(intent);
+        }else if(s.equalsIgnoreCase(Constants.PREFERENCE_BLACK_BACKGROUND)){
+            Intent intent=new Intent(PebbleCenter.class.getName());
+            intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_PREFER_CHANGED);
+            LocalBroadcastManager.getInstance(_context).sendBroadcast(intent);
         }
 
     }
