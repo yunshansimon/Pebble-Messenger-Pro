@@ -844,6 +844,7 @@ public class PebbleCenter extends Service {
     private void clean_SendQue(){
 
         sendQueue.clear();
+        send_full_page=true;
         //pebbleBusy=false;
     }
 

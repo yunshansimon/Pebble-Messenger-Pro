@@ -4,9 +4,9 @@ android {
     signingConfigs {
         config {
             keyAlias 'caoyang'
-            keyPassword '8802616a!'
+            keyPassword ''
             storeFile file('/Users/yunshansimon/mypebble-project/YangTsaoKey')
-            storePassword '8802616a!'
+            storePassword ''
         }
     }
     compileSdkVersion 16
