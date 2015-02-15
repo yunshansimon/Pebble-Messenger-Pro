@@ -940,7 +940,7 @@ public class PebbleCenter extends Service {
 
                 PebbleKit.startAppOnPebble(_contex, Constants.PEBBLE_UUID);
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(1500);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

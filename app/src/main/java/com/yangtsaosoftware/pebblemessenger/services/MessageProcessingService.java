@@ -37,12 +37,17 @@ import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
+import android.text.TextUtils;
 import android.text.format.Time;
+import android.view.View;
 
 import java.util.ArrayDeque;
 import java.util.Calendar;
 import java.util.Deque;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.yangtsaosoftware.pebblemessenger.Constants;
@@ -506,9 +511,16 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
                 }
                 originalMessage = originalMessage.substring(1);
             }
-            message.setAscMsg(strBd.toString().replaceAll("\\x20+\\n","\n"));
- //           Constants.log(TAG_NAME,"set msg:[" + message.getAscMsg() + "]");
-            message.setCharacterQueue(characterQueue);
+            if (isRTL()){
+                message.setAscMsg(process_RTL_ASCStr(strBd.toString()));
+        //        Constants.log(TAG_NAME,"set msg:[" + message.getAscMsg() + "]");
+                message.setCharacterQueue(process_RTL_UNIStr(characterQueue));
+            }else{
+                message.setAscMsg(strBd.toString().replaceAll("\\s+\\n","\n"));
+                //           Constants.log(TAG_NAME,"set msg:[" + message.getAscMsg() + "]");
+                message.setCharacterQueue(characterQueue);
+            }
+
 
             return message;
         }
@@ -619,9 +631,14 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
                 }
                 originalMessage = originalMessage.substring(1);
             }
-
-            message.setCharacterQueue(characterQueue);
-            message.setAscMsg(strBd.toString());
+            if (isRTL()){
+                message.setAscMsg(process_RTL_ASCStr(strBd.toString()));
+                message.setCharacterQueue(process_RTL_UNIStr(characterQueue));
+            }else{
+                message.setAscMsg(strBd.toString());
+                //           Constants.log(TAG_NAME,"set msg:[" + message.getAscMsg() + "]");
+                message.setCharacterQueue(characterQueue);
+            }
             return message;
         }
 
@@ -678,5 +695,60 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
         Time nowTime= new Time();
         nowTime.setToNow();
         return mdb.addMessage(nowTime,b.getString(MessageDbHandler.COL_MESSAGE_APP),b.getString(MessageDbHandler.COL_MESSAGE_CONTENT),icon);
+    }
+
+    private boolean isRTL(){
+        Locale myLocal=Locale.getDefault();
+        return (TextUtils.getLayoutDirectionFromLocale(myLocal)== View.LAYOUT_DIRECTION_RTL? true:false);
+       // return true;
+    }
+
+    private String process_RTL_ASCStr(String ascStr){
+        Constants.log(TAG_NAME,"set msg:[" + ascStr + "]");
+        String[] stringLines=ascStr.split("\n");
+        StringBuilder sbResult=new StringBuilder();
+        Pattern p=Pattern.compile("\\S+");
+        for (String oneStr:stringLines){
+            oneStr=reverseString(reformString(oneStr,fChars));
+            Constants.log(TAG_NAME,"oneStr before:[" + oneStr + "]");
+            Matcher m=p.matcher(oneStr);
+            while(m.find()){
+                m.replaceFirst(reverseString(m.group()));
+            }
+            Constants.log(TAG_NAME,"oneStr after:[" + oneStr + "]");
+            sbResult.append(oneStr);
+            sbResult.append('\n');
+        }
+        return sbResult.toString();
+    }
+
+    private Deque<CharacterMatrix> process_RTL_UNIStr(Deque<CharacterMatrix> dc){
+        Iterator<CharacterMatrix> cmIt=dc.iterator();
+        while(cmIt.hasNext()){
+            CharacterMatrix cmCur=cmIt.next();
+            byte[] pos=cmCur.getPos();
+            int newCol=fChars- (int) pos[1] + (cmCur.getWidthBytes()>1?0:1);
+            cmCur.setPos((int)pos[0], newCol);
+            Constants.log(TAG_NAME,String.format("Deque pos old col %d:new col %d",(int)pos[1],newCol));
+        }
+        return dc;
+    }
+
+    private String reformString(String strIn, int num ){
+        if (strIn.length()<num){
+            StringBuilder sb=new StringBuilder(num);
+            sb.append(strIn);
+            while (sb.length()<num){
+                sb.append(' ');
+            }
+            return sb.toString();
+        }else{
+            return strIn;
+        }
+    }
+
+    private String reverseString(String strIn){
+        StringBuilder sb=new StringBuilder(strIn).reverse();
+        return sb.toString();
     }
 }
