@@ -96,7 +96,7 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
     private Calendar      quiet_hours_after     = null;
     private boolean   callQuietEnable       = false;
     private int fChars;  //line contain chars
-
+    private boolean read_message =false;
     private Messenger rPebbleCenter =null;
     private final ServiceConnection connToPebbleCenter =new ServiceConnection() {
         @Override
@@ -194,7 +194,7 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
         };
         IntentFilter intentFilter=new IntentFilter(MessageProcessingService.class.getName());
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(br,intentFilter);
-        myTTS=new TextToSpeech(this,this);
+
 
     }
 
@@ -400,7 +400,7 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
             }else {
 
                 originalMessage ='['+ b.getString(MessageDbHandler.COL_MESSAGE_APP)
-                        + ']' + b.getString(MessageDbHandler.COL_MESSAGE_CONTENT);
+                        + ']' + b.getString(MessageDbHandler.COL_MESSAGE_CONTENT).replace("\n","");
                 Constants.log(TAG_NAME,"original:" + originalMessage + "\n"
                     + b.getString(MessageDbHandler.COL_MESSAGE_APP) + "\n"
                     + String.valueOf(b.getLong(MessageDbHandler.COL_MESSAGE_ID)));
@@ -516,7 +516,7 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
         //        Constants.log(TAG_NAME,"set msg:[" + message.getAscMsg() + "]");
                 message.setCharacterQueue(process_RTL_UNIStr(characterQueue));
             }else{
-                message.setAscMsg(strBd.toString().replaceAll("\\s+\\n","\n"));
+                message.setAscMsg(strBd.toString());
                 //           Constants.log(TAG_NAME,"set msg:[" + message.getAscMsg() + "]");
                 message.setCharacterQueue(characterQueue);
             }
@@ -662,6 +662,14 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         quiet_hours = sharedPref.getBoolean(Constants.PREFERENCE_QUIET_HOURS, false);
         callQuietEnable = sharedPref.getBoolean(Constants.PREFERENCE_CALL_QUIET, false);
+        read_message=sharedPref.getBoolean(Constants.PREFERENCE_READ_MESSAGE,false);
+        if(read_message && myTTS==null){
+            myTTS=new TextToSpeech(this,this);
+        }
+        if(!read_message && myTTS!=null){
+            myTTS.shutdown();
+            myTTSisOK=false;
+        }
         if (quiet_hours) {
             String[] pieces = sharedPref.getString(Constants.PREFERENCE_QUIET_HOURS_BEFORE, "00:00").split(":");
             quiet_hours_before = new GregorianCalendar(0, 0, 0, Integer.parseInt(pieces[0]), Integer.parseInt(pieces[1]));
@@ -700,23 +708,24 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
     private boolean isRTL(){
         Locale myLocal=Locale.getDefault();
         return (TextUtils.getLayoutDirectionFromLocale(myLocal)== View.LAYOUT_DIRECTION_RTL? true:false);
-       // return true;
+        //return true;
     }
 
     private String process_RTL_ASCStr(String ascStr){
         Constants.log(TAG_NAME,"set msg:[" + ascStr + "]");
         String[] stringLines=ascStr.split("\n");
         StringBuilder sbResult=new StringBuilder();
-        Pattern p=Pattern.compile("\\S+");
+        Pattern p=Pattern.compile("\\w+");
         for (String oneStr:stringLines){
             oneStr=reverseString(reformString(oneStr,fChars));
+            StringBuffer oneResult=new StringBuffer();
             Constants.log(TAG_NAME,"oneStr before:[" + oneStr + "]");
             Matcher m=p.matcher(oneStr);
             while(m.find()){
-                m.replaceFirst(reverseString(m.group()));
+                m.appendReplacement(oneResult,reverseString(m.group()));
             }
-            Constants.log(TAG_NAME,"oneStr after:[" + oneStr + "]");
-            sbResult.append(oneStr);
+            Constants.log(TAG_NAME,"oneStr after:[" + oneResult.toString() + "]");
+            sbResult.append(oneResult);
             sbResult.append('\n');
         }
         return sbResult.toString();
@@ -736,7 +745,7 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
 
     private String reformString(String strIn, int num ){
         if (strIn.length()<num){
-            StringBuilder sb=new StringBuilder(num);
+            StringBuilder sb=new StringBuilder();
             sb.append(strIn);
             while (sb.length()<num){
                 sb.append(' ');
@@ -748,7 +757,7 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
     }
 
     private String reverseString(String strIn){
-        StringBuilder sb=new StringBuilder(strIn).reverse();
+        StringBuilder sb=(new StringBuilder(strIn)).reverse();
         return sb.toString();
     }
 }

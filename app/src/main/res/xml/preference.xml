@@ -2,6 +2,17 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
+        android:key="pref_general"
+        android:title="@string/pref_cat_general">
+        <Preference android:title="@string/pref_general_accessibility"
+            android:key="pref_button_accessibility"
+            android:summary="@string/pref_general_accessibility_summ"/>
+        <Preference android:title="@string/pref_general_pebbleapp"
+            android:key="pref_button_app"
+            android:summary="@string/pref_general_pebbleapp_summ"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory
         android:key="pref_cat_gen"
         android:title="@string/pref_cat_notif" >
         <com.yangtsaosoftware.pebblemessenger.activities.AppListPreference
@@ -32,6 +43,17 @@
             android:defaultValue="0"
             android:entries="@array/pref_notif_font_size"
             android:entryValues="@array/pref_notif_font_size_value"/>
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:title="@string/pref_notif_readmessage"
+            android:key="pref_notif_readmessage"
+            android:summary="@string/pref_notif_readmessage_summ"/>
+        <Preference
+            android:key="pref_button_setuptts"
+            android:title="@string/pref_notif_setuptts"
+            android:summary="@string/pref_notif_setuptts_summ"
+            android:dependency="pref_notif_readmessage"/>
+
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="pref_dnd_time_enabled"

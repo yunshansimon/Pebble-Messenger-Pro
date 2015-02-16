@@ -48,6 +48,7 @@ public class Constants {
     public static final String  PREFERENCE_QUIET_HOURS_AFTER          = "pref_dnd_time_after";
     public static final String  PREFERENCE_MIN_NOTIFICATION_WAIT      = "pref_notif_timeout";
     public static final String  PREFERENCE_BLACK_BACKGROUND           = "pref_black_background";
+    public static final String  PREFERENCE_READ_MESSAGE               = "pref_notif_readmessage";
     //----------------------------------------
 
     //two sets parameters of message characters
@@ -75,6 +76,8 @@ public class Constants {
     public static final String BROADCAST_VERSION="version";
     public static final byte[] PEBBLE_VERSION={2,2,0};
     public static final byte[] PEBBLE_FIRMWARE={2,7,0};
+
+    public static final String AUTHOR_EMAIL="yunshansimon@gmail.com";
 
     //Pebble app communication
     public static final UUID PEBBLE_UUID= UUID.fromString("2d0b18b1-0ee6-41ca-9579-a0c4c6568d93");

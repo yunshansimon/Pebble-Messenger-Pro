@@ -16,6 +16,10 @@
     <string name="pref_notif_screen_on_summ">When checked, notifications will be sent to the pebble even if the phone\'s screen is on.</string>
     <string name="pref_notif_message_scale">Font size on Pebble</string>
     <string name="pref_notif_message_scale_summ">The font is more large, the chars which were displayed on the Pebble screen is more few.</string>
+    <string name="pref_notif_readmessage">Open Text to Speech</string>
+    <string name="pref_notif_readmessage_summ">Click middle button of Pebble to convert the current message to voice.</string>
+    <string name="pref_notif_setuptts">Setup Text to Speech Engine</string>
+    <string name="pref_notif_setuptts_summ">Go to system settings to choice speech engine of your language.</string>
     <string name="pref_package_list">Watch List</string>
     <string name="pref_package_list_summ">Select the applications that you want to send notifications to your Pebble</string>
     <string name="pref_dnd_time_enabled">Quiet time</string>
@@ -60,7 +64,12 @@
     <string name="pref_call_sms_long_default">Sorry! I am in a meeting, Send me message or waiting for my call back.</string>
     <string name="pref_black_background">Set black background style</string>
     <string name="pref_black_background_summ">Check for black background and white chars on Pebble\'s screen.</string>
-    <string name="title_setup_activity">Initial Setup</string>
+    <string name="pref_cat_general">General Setup</string>
+    <string name="pref_cat_general_summ">Main setup function</string>
+    <string name="pref_general_accessibility">Open Pebble Messenger\'s Service</string>
+    <string name="pref_general_accessibility_summ">If the service is closed, this app will not work at all.</string>
+    <string name="pref_general_pebbleapp">Install PebbleMsgPro on watch.</string>
+    <string name="pref_general_pebbleapp_summ">Install a cooperative app on your watch.</string>
     <string name="title_setting_activity">Options</string>
     <string name="title_tools_activity">Tools</string>
     <string name="title_about_activity">About</string>
@@ -74,28 +83,40 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
 
-    <string name="setup_test_pebble_title">1. Check your Pebble status</string>
-    <string name="setup_test_pebble_firmware">2. Check your Pebble firmware version</string>
-    <string name="setup_accessibility_service_title">3. Enable accessibility service</string>
-    <string name="setup_install_pebble_app">4. Check PebbleMsgPro status</string>
-    <string name="setup_watch_list">5. Check Watch List</string>
-    <string name="setup_font_base_status">6. Font data base status</string>
-    <string name="setup_tts_engine">7. The system speech engine:</string>
+    <string name="setup_hello">Welcome to Pebble Messenger Pro test page!\nPlease select test function from option buttons.\n</string>
+    <string name="setup_basic_test">Basic Test</string>
+    <string name="setup_app_test">Pebble App Test</string>
+    <string name="setup_tts_test">TTS Engine Test</string>
+    <string name="setup_run_all">Run All Test</string>
+    <string name="setup_send_to_author">Email to Author</string>
+
+    <string name="setup_test_pebble_title">1. Check your Pebble status\t</string>
+    <string name="setup_test_pebble_firmware">2. Check your Pebble firmware version\t</string>
+    <string name="setup_accessibility_service_title">3. Enable accessibility service\t</string>
+    <string name="setup_install_pebble_app">6. Check PebbleMsgPro status\t</string>
+    <string name="setup_watch_list">4. Check Watch List\t</string>
+    <string name="setup_font_base_status">5. Font data base status\t</string>
+    <string name="setup_tts_engine">7. The system speech engine\t</string>
     <string name="setup_tts_default_locale">Language:</string>
     <string name="setup_tts_failed">The speech engine is failed, your pebble will not read the notification</string>
 
     <string name="setup_check_ok">OK</string>
     <string name="setup_check_empty">Empty</string>
     <string name="setup_check_bad">Bad</string>
+    <string name="setup_check_closed">Closed</string>
+    <string name="setup_check_opened">Opened</string>
     <string name="setup_check_uncheck">UnCheck</string>
     <string name="setup_check_result_need_update">The Version is lower than demand, please go to Pebble App and update</string>
     <string name="setup_check_disconnected">Disconnected</string>
+    <string name="setup_check_connected">Connected</string>
     <string name="setup_watch_list_warning">Please go to [Setting->Watch List] to add app</string>
     <string name="setup_button_goto_setting">Setting->Accessibility</string>
     <string name="setup_button_check_pebble_app">Check PebbleMsgPro on Pebble</string>
     <string name="setup_button_goto_pebble">Install/update PebbleMsgPro on Pebble</string>
     <string name="setup_button_goto_speech_setting">Test Text-to-speech Engine</string>
-    
+
+    <string name="setup_report_subject">My Pebble Messenger Pro Test Report</string>
+    <string name="setup_send_mail">Sending mail...</string>
 
 
     <string name="tools_button_rebuild_font">Rebuild Font Database</string>
@@ -121,7 +142,8 @@
     <string name="test_call_name">Rolex</string>
 
     <string name="seek_null_message">The message you want is no longer exist.</string>
-    <string name="about_text">"Author: Yang Tsao\nDevelop IDE: Android Studio\nMin SDK Version: 4.1.2\nPebble firmware Version: 2.7\nThanks: My wife Meiying Song and My son Gaoge Tsao\n\tTiago R. Espinha, Dattas Moonchaser\nLast: I hope you enjoy this app, if there are any regret about buying, please send me your bill number, I'l refund the money any time.I'm so glad if you feedback some advice. If you like my app, please rating it on google play.\nHelp site: http://yangtsao.wordpress.com\nEmail: yunshansimon@gmail.com"
+    <string name="about_text">"Author: Yang Tsao\nDevelop IDE: Android Studio\nMin SDK Version: 4.4.2\nPebble firmware Version: 2.7\nThanks: My wife Meiying Song and My son Gaoge Tsao\n\tTiago R. Espinha, Dattas Moonchaser\nLast: I hope you enjoy this app, if there are any regret about buying, please send me your bill number, I'l refund the money any time.I'm so glad if you feedback some advice. If you like my app, please rating it on google play.\nHelp site: http://yangtsao.wordpress.com\nEmail: yunshansimon@gmail.com"
     "\nThanks to Jarrod Kailef for English correction."
     </string>
+    <string name="title_setup_activity">Evenment Test</string>
 </resources>

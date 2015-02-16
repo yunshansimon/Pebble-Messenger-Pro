@@ -22,10 +22,13 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
 
 
@@ -40,7 +43,7 @@ import com.yangtsaosoftware.pebblemessenger.services.PebbleCenter;
  *
  */
 public class SettingFragment extends PreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener {
-private static final int positionIndex=1;
+private static final int positionIndex=0;
     private Context _context;
     private SharedPreferences prefs;
     private static String TAG_NAME="SettingFragment";
@@ -50,6 +53,34 @@ private static final int positionIndex=1;
         super.onCreate(savedInstanceState);
         prefs= PreferenceManager.getDefaultSharedPreferences(_context);
         addPreferencesFromResource(R.xml.preference);
+        Preference butAccessbility=findPreference("pref_button_accessibility");
+        butAccessbility.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+                return true;
+            }
+        });
+        Preference butPebbleApp=findPreference("pref_button_app");
+        butPebbleApp.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(Constants.PEBBLE_APP_URL));
+                startActivity(i);
+                return true;
+            }
+        });
+
+        Preference butSetuptts=findPreference("pref_button_setuptts");
+        butSetuptts.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+                return true;
+            }
+        });
+
 
     }
 
@@ -123,6 +154,10 @@ private static final int positionIndex=1;
             LocalBroadcastManager.getInstance(_context).sendBroadcast(intent);
         }else if(s.equalsIgnoreCase(Constants.PREFERENCE_BLACK_BACKGROUND)){
             Intent intent=new Intent(PebbleCenter.class.getName());
+            intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_PREFER_CHANGED);
+            LocalBroadcastManager.getInstance(_context).sendBroadcast(intent);
+        }else if(s.equalsIgnoreCase(Constants.PREFERENCE_READ_MESSAGE)){
+            Intent intent=new Intent(MessageProcessingService.class.getName());
             intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_PREFER_CHANGED);
             LocalBroadcastManager.getInstance(_context).sendBroadcast(intent);
         }

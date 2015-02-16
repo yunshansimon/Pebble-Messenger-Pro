@@ -73,7 +73,7 @@
     <string name="pref_call_sms_long_summ">当你按中键0.5秒，手机可以发送另一条短信。</string>
     <string name="pref_call_sms_short_default">对不起！实在无法接听电话，我会事后打给您。</string>
     <string name="pref_call_sms_long_default">对不起！我在开会，如果很急请给我发短信，或者我会后打给您。</string>
-    <string name="title_setup_activity">初始化</string>
+    <string name="title_setup_activity">环境检测</string>
     <string name="title_setting_activity">设置</string>
     <string name="title_tools_activity">小工具</string>
     <string name="title_about_activity">关于</string>
@@ -89,9 +89,9 @@
 
     <string name="setup_test_pebble_title">1、是否Pebble手表与手机正确连接？</string>
     <string name="setup_accessibility_service_title">3、 是否打开了Pebble信使在系统设定-辅助功能的服务？</string>
-    <string name="setup_install_pebble_app">4、是否安装了Pebble信使在手表端的程序？</string>
-    <string name="setup_watch_list">5、 转发程序列表里选择了需要转发的程序吗？</string>
-    <string name="setup_font_base_status">6、 文字点阵库是否建立完整？</string>
+    <string name="setup_install_pebble_app">6、是否安装了Pebble信使在手表端的程序？</string>
+    <string name="setup_watch_list">4、 转发程序列表里选择了需要转发的程序吗？</string>
+    <string name="setup_font_base_status">5、 文字点阵库是否建立完整？</string>
     <string name="setup_tts_engine">7、 系统语音转换引擎是否正常？</string>
     <string name="setup_tts_default_locale">语音引擎语言：</string>
     <string name="setup_tts_failed">语音引擎检查失败，您的手机将不能读出通知</string>
@@ -131,11 +131,33 @@
     <string name="test_call_name">劳力士</string>
 
     <string name="seek_null_message">此通知已经不在系统缓存中了</string>
-    <string name="about_text">"作者： Yang Tsao\n开发工具： Android Studio\n系统最低版本： 4.1.2\nPebble最低版本： 2.7\n感谢： 妻子 Meiying Song 和 儿子 Gaoge Tsao\n\tTiago R. Espinha, Dattas Moonchaser(代码参考)\n最后： 希望您能喜欢它，如果您觉得它不值得购买，请联系我并告知订单号，无论任何时候我都会帮您退款。非常高兴能看到您给我的任何建议。 如果您喜欢Pebble信使，希望您能在google play上给它加几颗星.\n帮助网站：http://yangtsao.wordpress.com\n我的邮箱：yunshansimon@gmail.com"</string>
+    <string name="about_text">"作者： Yang Tsao\n开发工具： Android Studio\n系统最低版本： 4.4.2\nPebble最低版本： 2.7\n感谢： 妻子 Meiying Song 和 儿子 Gaoge Tsao\n\tTiago R. Espinha, Dattas Moonchaser(代码参考)\n最后： 希望您能喜欢它，如果您觉得它不值得购买，请联系我并告知订单号，无论任何时候我都会帮您退款。非常高兴能看到您给我的任何建议。 如果您喜欢Pebble信使，希望您能在google play上给它加几颗星.\n帮助网站：http://yangtsao.wordpress.com\n我的邮箱：yunshansimon@gmail.com"</string>
     <string name="pref_black_background">设置黑色背景</string>
     <string name="pref_black_background_summ">选中将在Pebble上显示黑底白字</string>
     <string name="setup_button_check_pebble_app">检查手表端PebbleMsgPro状态</string>
     <string name="setup_check_result_need_update">版本过低，请到Pebble APP上进行升级</string>
     <string name="setup_test_pebble_firmware">2、检查Pebble手表固件版本</string>
+    <string name="pref_cat_general">基本设置</string>
+
+    <string name="pref_cat_general_summ" >程序能够使用的基础设置</string>
+    <string name="pref_general_accessibility">设置Pebble信使系统服务</string>
+    <string name="pref_general_accessibility_summ">如果服务被关闭，Pebble信使无法获取通知</string>
+    <string name="pref_general_pebbleapp">在手表上安装Pebble端程序</string>
+    <string name="pref_general_pebbleapp_summ">安装配合手机在手表上显示中文的程序</string>
+    <string name="pref_notif_readmessage">允许读信息功能</string>
+    <string name="pref_notif_readmessage_summ">使用Pebble中键可以让手机读出手表正显示的信息</string>
+    <string name="pref_notif_setuptts">设置文字转语音引擎</string>
+    <string name="pref_notif_setuptts_summ">进入系统设置，选择中文语音引擎</string>
+    <string name="setup_app_test">Pebble端APP测试</string>
+    <string name="setup_basic_test">基础运行环境测试</string>
+    <string name="setup_check_closed">服务关闭</string>
+    <string name="setup_check_connected">已连接</string>
+    <string name="setup_check_opened">服务开启</string>
+    <string name="setup_hello">欢迎进入Pebble信使增强版的测试页\n请在附属菜单中选择检测项</string>
+    <string name="setup_report_subject">Pebble信使检测报告</string>
+    <string name="setup_run_all">运行全部检测</string>
+    <string name="setup_send_mail">发送邮件……</string>
+    <string name="setup_send_to_author">发送检测报告</string>
+    <string name="setup_tts_test">语音引擎检测</string>
 
 </resources>

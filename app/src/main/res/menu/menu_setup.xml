@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Pebble Messenger is used to display non-english message on Pebble.
+  ~ Copyright (C) 2014  Yang Tsao
+  ~
+  ~ This program is free software; you can redistribute it and/or
+  ~ modify it under the terms of the GNU General Public License
+  ~ as published by the Free Software Foundation; either version 2
+  ~ of the License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  -->
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/setup_base_test"
+        android:title="@string/setup_basic_test"
+        android:orderInCategory="100"/>
+    <item android:id="@+id/setup_app_test"
+        android:title="@string/setup_app_test"
+        android:orderInCategory="200"/>
+    <item android:id="@+id/setup_tts_test"
+        android:title="@string/setup_tts_test"
+        android:orderInCategory="300"/>
+    <item android:id="@+id/setup_all_test"
+        android:title="@string/setup_run_all"
+        android:orderInCategory="400"/>
+    <item android:id="@+id/setup_report_author"
+        android:title="@string/setup_send_to_author"
+        android:orderInCategory="500"/>
+
+</menu>

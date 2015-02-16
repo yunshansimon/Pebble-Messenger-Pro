@@ -70,13 +70,13 @@ public class NavigationActivity extends Activity
         switch (position){
             case 0:
                 fragmentManager.beginTransaction()
-                        .replace(R.id.container,new SetupFragment())
+                        .replace(R.id.container,new SettingFragment())
                         .commit();
 
                 break;
             case 1:
                 fragmentManager.beginTransaction()
-                        .replace(R.id.container,new SettingFragment())
+                        .replace(R.id.container,new SetupFragment())
                         .commit();
                 break;
             case 2:
@@ -97,10 +97,11 @@ public class NavigationActivity extends Activity
         Constants.log(CLASS_TAG,"Section Attached:" + String.valueOf(number));
         switch (number) {
             case 0:
-                mTitle = getString(R.string.title_setup_activity);
+                mTitle = getString(R.string.title_setting_activity);
+
                 break;
             case 1:
-                mTitle = getString(R.string.title_setting_activity);
+                mTitle = getString(R.string.title_setup_activity);
                 break;
             case 2:
                 mTitle = getString(R.string.title_tools_activity);
