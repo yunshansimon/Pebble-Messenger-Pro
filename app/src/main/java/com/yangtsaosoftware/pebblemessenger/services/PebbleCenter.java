@@ -1049,7 +1049,7 @@ public class PebbleCenter extends Service {
         Context context = getApplicationContext();
         AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         // 判断是否插上了耳机
-        if (!audioManager.isWiredHeadsetOn()) {
+        if (!(audioManager.isWiredHeadsetOn() || audioManager.isBluetoothA2dpOn())) {
             // 4.1以上系统限制了部分权限， 使用三星4.1版本测试提示警告：Permission Denial: not allowed to
             // send broadcast android.intent.action.HEADSET_PLUG from pid=1324,
             // uid=10017
@@ -1109,7 +1109,7 @@ public class PebbleCenter extends Service {
         callIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
         startActivity(callIntent);
 
-        if (!audioManager.isWiredHeadsetOn()) {
+        if (!(audioManager.isWiredHeadsetOn() || audioManager.isBluetoothA2dpOn())) {
             // 4.1以上系统限制了部分权限， 使用三星4.1版本测试提示警告：Permission Denial: not allowed to
             // send broadcast android.intent.action.HEADSET_PLUG from pid=1324,
             // uid=10017
