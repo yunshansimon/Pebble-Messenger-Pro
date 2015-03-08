@@ -24,27 +24,24 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.accessibilityservice.AccessibilityService;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.PowerManager;
 import android.os.RemoteException;
+import android.service.notification.NotificationListenerService;
+import android.service.notification.StatusBarNotification;
 import android.support.v4.content.LocalBroadcastManager;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.accessibility.AccessibilityEvent;
+
 import com.yangtsaosoftware.pebblemessenger.Constants;
 import com.yangtsaosoftware.pebblemessenger.db.MessageDbHandler;
 
 import android.app.Notification;
-import android.os.Parcelable;
+
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.widget.RemoteViews;
-import android.widget.TextView;
 
-public class NotificationService extends AccessibilityService{
+
+public class NotificationService extends NotificationListenerService {
     private static final String LOG_TAG="NotificationService";
 
     private boolean   notifScreenOn         = true;
@@ -68,8 +65,79 @@ public class NotificationService extends AccessibilityService{
     public NotificationService() {
     }
 
+    @Override
+    public void onNotificationPosted(StatusBarNotification sbn) {
+        if(sbn==null) return;
+        //Constants.log(LOG_TAG,"New Access Event:"+ String.valueOf(event.getEventType()));
+        /*if(event.getEventType()!= AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED){
+
+            return;
+        }
+        */
+        PowerManager powMan = (PowerManager) this.getSystemService(POWER_SERVICE);
+        if (!notifScreenOn && powMan.isScreenOn()) {
+            return;
+        }
+        //Parcelable parcelable=event.getParcelableData();
+        //if(!(parcelable instanceof Notification)) return;
+        Notification notif=sbn.getNotification();
+        if(sbn.isOngoing()){
+            return;
+        }
+
+        String eventPackageName;
+
+        if (sbn.getPackageName() != null) {
+            eventPackageName = sbn.getPackageName();
+        } else {
+            Constants.log(LOG_TAG, "Can't get event package name. Returning.");
+            return;
+        }
+
+        boolean found = false;
+        for (String packageName : packages) {
+            if (packageName.equalsIgnoreCase(eventPackageName)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            Constants.log(LOG_TAG, eventPackageName + " was not found in the include list. Returning.");
+            return;
+        }
+        String title = eventPackageName.substring(eventPackageName.lastIndexOf('.')+1);
+        // get the notification text
+        Bundle notiBundle=notif.extras;
+        String notificationText = notiBundle.getString(Notification.EXTRA_TITLE);
+        String shortText=notiBundle.getString(Notification.EXTRA_TEXT,"") + notiBundle.getString(Notification.EXTRA_SUB_TEXT,"");
+        // strip the first and last characters which are [ and ]
+
+        if (shortText.length() == 0) {
+            return;
+        }
+        Message msg=Message.obtain();
+        msg.what=MessageProcessingService.MSG_NEW_MESSAGE;
+        Bundle b=new Bundle();
+        b.putString(MessageDbHandler.COL_MESSAGE_APP,title);
+        b.putString(MessageDbHandler.COL_MESSAGE_CONTENT,notificationText + ">" + shortText);
+       // Constants.log(LOG_TAG,"Send new message title:"+ title + " boty:" + notificationText);
+        msg.setData(b);
+        try {
+            rMessageProcessHandler.send(msg);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+            Constants.log(LOG_TAG,"Error when sending message to MessageProcessingService.");
+        }
+    }
 
     @Override
+    public void onNotificationRemoved(StatusBarNotification statusBarNotification) {
+
+    }
+
+
+
+    /*@Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         if(event==null) return;
         Constants.log(LOG_TAG,"New Access Event:"+ String.valueOf(event.getEventType()));
@@ -135,9 +203,10 @@ public class NotificationService extends AccessibilityService{
             Constants.log(LOG_TAG,"Error when sending message to MessageProcessingService.");
         }
 
-    }
+    }*/
 
-    private String getExtraBigData(Notification notification, String existing_text) {
+
+ /*   private String getExtraBigData(Notification notification, String existing_text) {
         RemoteViews views;
         try {
             views = notification.bigContentView;
@@ -227,20 +296,22 @@ public class NotificationService extends AccessibilityService{
             return false;
         }
     }
-    
+*/
     private void loadPrefs() {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         packages = sharedPref.getString(Constants.PREFERENCE_PACKAGE_LIST, "").split(",");
         notifScreenOn = sharedPref.getBoolean(Constants.PREFERENCE_NOTIF_SCREEN_ON, true);
     }
+
     @Override
-    public void onInterrupt() {
+    public void onDestroy() {
+        unbindService(connToMessageProcess);
 
     }
 
     @Override
-    public void onServiceConnected() {
-        // get inital preferences
+    public void onCreate() {
+        super.onCreate();
         loadPrefs();
         bindService(new Intent(this, MessageProcessingService.class), connToMessageProcess,
                 Context.BIND_AUTO_CREATE);
@@ -253,11 +324,6 @@ public class NotificationService extends AccessibilityService{
         };
         IntentFilter intentFilter=new IntentFilter(NotificationService.class.getName());
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(br,intentFilter);
-    }
-    @Override
-    public void onDestroy() {
-        unbindService(connToMessageProcess);
-
     }
 
     @Override
