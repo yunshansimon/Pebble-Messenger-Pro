@@ -39,6 +39,9 @@ import android.app.Notification;
 
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
+import android.util.Log;
 
 
 public class NotificationService extends NotificationListenerService {
@@ -68,7 +71,7 @@ public class NotificationService extends NotificationListenerService {
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
         if(sbn==null) return;
-        //Constants.log(LOG_TAG,"New Access Event:"+ String.valueOf(event.getEventType()));
+        Constants.log(LOG_TAG,"New Access Event:"+ sbn.getPackageName() + " tag:"+ sbn.getTag());
         /*if(event.getEventType()!= AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED){
 
             return;
@@ -76,12 +79,14 @@ public class NotificationService extends NotificationListenerService {
         */
         PowerManager powMan = (PowerManager) this.getSystemService(POWER_SERVICE);
         if (!notifScreenOn && powMan.isScreenOn()) {
+            Constants.log(LOG_TAG,"because screen out!");
             return;
         }
         //Parcelable parcelable=event.getParcelableData();
         //if(!(parcelable instanceof Notification)) return;
         Notification notif=sbn.getNotification();
         if(sbn.isOngoing()){
+            Constants.log(LOG_TAG,"because is Ongoing!");
             return;
         }
 
@@ -108,19 +113,34 @@ public class NotificationService extends NotificationListenerService {
         String title = eventPackageName.substring(eventPackageName.lastIndexOf('.')+1);
         // get the notification text
         Bundle notiBundle=notif.extras;
-        String notificationText = notiBundle.getString(Notification.EXTRA_TITLE);
-        String shortText=notiBundle.getString(Notification.EXTRA_TEXT,"") + notiBundle.getString(Notification.EXTRA_SUB_TEXT,"");
-        // strip the first and last characters which are [ and ]
-
-        if (shortText.length() == 0) {
+        StringBuilder notifySb=new StringBuilder();
+        CharSequence notifyChars = notiBundle.getCharSequence(Notification.EXTRA_TITLE);
+        if (notifyChars!=null){
+            notifySb.append(notifyChars);
+        }else{
+            Constants.log(LOG_TAG, "empty message title,return!");
             return;
         }
+
+        CharSequence bodyCS= notiBundle.getCharSequence(Notification.EXTRA_TEXT);
+        if (bodyCS!=null){
+            notifySb.append(">");
+            notifySb.append(bodyCS);
+        }else{
+            Constants.log(LOG_TAG, "empty message body,return!" + notifySb.toString());
+            return;
+        }
+        bodyCS= notiBundle.getCharSequence(Notification.EXTRA_SUB_TEXT);
+        if (bodyCS!=null){
+            notifySb.append(bodyCS);
+        }
+
         Message msg=Message.obtain();
         msg.what=MessageProcessingService.MSG_NEW_MESSAGE;
         Bundle b=new Bundle();
         b.putString(MessageDbHandler.COL_MESSAGE_APP,title);
-        b.putString(MessageDbHandler.COL_MESSAGE_CONTENT,notificationText + ">" + shortText);
-       // Constants.log(LOG_TAG,"Send new message title:"+ title + " boty:" + notificationText);
+        b.putString(MessageDbHandler.COL_MESSAGE_CONTENT, notifySb.toString());
+        Constants.log(LOG_TAG,"Send new message title:"+ title + " body:" + notifySb.toString());
         msg.setData(b);
         try {
             rMessageProcessHandler.send(msg);

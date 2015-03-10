@@ -25,6 +25,7 @@ android {
             signingConfig signingConfigs.config
         }
         debug {
+            jniDebuggable true
         }
     }
     productFlavors {

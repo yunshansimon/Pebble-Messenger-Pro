@@ -86,7 +86,7 @@ public class Constants {
     //Shared function
     public static void log(String tag, String message) {
         if (Constants.IS_LOGGABLE) {
-            Log.d(tag, message);
+            Log.i(tag, message);
         }
     }
 }
