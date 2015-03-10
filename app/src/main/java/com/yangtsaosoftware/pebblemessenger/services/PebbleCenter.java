@@ -1042,6 +1042,14 @@ public class PebbleCenter extends Service {
             e.printStackTrace();
         }
 
+        /*Context context = getApplicationContext();
+        AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        Constants.log("speakerset", String.format("AudioManager before mode:%d speaker mod:%s", audioManager.getMode(), String.valueOf(audioManager.isSpeakerphoneOn())));
+        Intent meidaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+        KeyEvent keyEvent = new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_HEADSETHOOK);
+        meidaButtonIntent.putExtra(Intent.EXTRA_KEY_EVENT, keyEvent);
+        context.sendOrderedBroadcast(meidaButtonIntent, "android.permission.CALL_PRIVILEGED");*/
+
     }
 
     private void answerCall(boolean isSpeakon) {
@@ -1060,7 +1068,20 @@ public class PebbleCenter extends Service {
             Intent meidaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
             KeyEvent keyEvent = new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_HEADSETHOOK);
             meidaButtonIntent.putExtra(Intent.EXTRA_KEY_EVENT, keyEvent);
-            context.sendOrderedBroadcast(meidaButtonIntent, null);
+            context.sendOrderedBroadcast(meidaButtonIntent, "android.permission.CALL_PRIVILEGED");
+
+            /*TelephonyManager telMag = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+            Class<TelephonyManager> c = TelephonyManager.class;
+            Method mthAnswerCall;
+            try {
+                mthAnswerCall = c.getDeclaredMethod("getITelephony", (Class[]) null);
+                mthAnswerCall.setAccessible(true);
+                ITelephony iTel = (ITelephony) mthAnswerCall.invoke(telMag, (Object[]) null);
+                iTel.answerRingingCall();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }*/
             if (isSpeakon) {
                 try {
                     Thread.sleep(500);
@@ -1092,7 +1113,7 @@ public class PebbleCenter extends Service {
             Intent meidaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
             KeyEvent keyEvent = new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_HEADSETHOOK);
             meidaButtonIntent.putExtra(Intent.EXTRA_KEY_EVENT, keyEvent);
-            context.sendOrderedBroadcast(meidaButtonIntent, null);
+            context.sendOrderedBroadcast(meidaButtonIntent, "android.permission.CALL_PRIVILEGED");
 
         }
     }
