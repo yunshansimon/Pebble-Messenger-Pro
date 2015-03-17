@@ -124,7 +124,7 @@ public class NotificationService extends NotificationListenerService {
 
         CharSequence bodyCS= notiBundle.getCharSequence(Notification.EXTRA_TEXT);
         if (bodyCS!=null){
-            notifySb.append(">");
+            notifySb.append(":");
             notifySb.append(bodyCS);
         }else{
             Constants.log(LOG_TAG, "empty message body,return!" + notifySb.toString());

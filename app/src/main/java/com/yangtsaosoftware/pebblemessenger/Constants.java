@@ -18,6 +18,10 @@ package com.yangtsaosoftware.pebblemessenger;
 
 
 
+import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.ContactsContract;
 import android.util.Log;
 
 import java.util.UUID;
@@ -38,6 +42,7 @@ public class Constants {
     // Shared preferences
     public static final String  PREFERENCE_PACKAGE_LIST               = "pref_package_list";
     public static final String  PREFERENCE_NOTIF_SCREEN_ON            = "pref_notif_screen_on";
+    public static final String  PREFERENCE_SMS_ENABLE                 = "pref_sms_enable";
     public static final String  PREFERENCE_MESSAGE_SCALE              = "pref_message_scale";
     public static final String  PREFERENCE_CALL_ENABLE                = "pref_call_enable";
     public static final String  PREFERENCE_CALL_QUIET                 = "pref_call_quiet";
@@ -70,9 +75,12 @@ public class Constants {
     public static final int BROADCAST_CALL_IDLE=3;
     public static final int BROADCAST_CALL_HOOK=4;
     public static final int BROADCAST_PEBBLE_TEST=5;
-    public static final int BROADCAST_PEBBLE_VERSION=6;
+   // public static final int BROADCAST_PEBBLE_VERSION=6;
+    public static final int BROADCAST_SMS_INCOMING=7;
+   // public static final int BROADCAST_MMS_INCOMING=8;
     public static final String BROADCAST_PHONE_NUM="phonenum";
     public static final String BROADCAST_NAME="name";
+    public static final String BROADCAST_SMS_BODY="body";
     public static final String BROADCAST_VERSION="version";
     public static final byte[] PEBBLE_VERSION={2,2,0};
     public static final byte[] PEBBLE_FIRMWARE={2,7,0};
@@ -88,5 +96,21 @@ public class Constants {
         if (Constants.IS_LOGGABLE) {
             Log.i(tag, message);
         }
+    }
+
+    public static String queryNameByNum(Context context, String num) {
+        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(num));
+        Cursor cursor = context.getContentResolver().query(uri, new String[] {
+                ContactsContract.PhoneLookup.DISPLAY_NAME
+        }, null, null, null);
+        String nameString=context.getString(R.string.notificationservice_unknownperson);
+        if (cursor!=null){
+            if (cursor.moveToFirst()){
+                int columnNumberId=cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME);
+                nameString=cursor.getString(columnNumberId);
+            }
+            cursor.close();
+        }
+        return nameString;
     }
 }

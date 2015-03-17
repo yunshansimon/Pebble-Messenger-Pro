@@ -189,6 +189,16 @@ public class MessageProcessingService extends Service implements TextToSpeech.On
                     case Constants.BROADCAST_CALL_IDLE:
                         phone_is_ontalking=false;
                         break;
+                    case Constants.BROADCAST_SMS_INCOMING:
+                    {
+                        Message msg=Message.obtain();
+                        msg.what=MSG_NEW_MESSAGE;
+                        Bundle b=new Bundle();
+                        b.putString(MessageDbHandler.COL_MESSAGE_APP,"SMS");
+                        b.putString(MessageDbHandler.COL_MESSAGE_CONTENT,intent.getStringExtra(Constants.BROADCAST_SMS_BODY));
+                        msg.setData(b);
+                        messageHandler.sendMessage(msg);
+                    }
                 }
             }
         };

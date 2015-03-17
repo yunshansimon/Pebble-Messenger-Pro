@@ -11,7 +11,9 @@
     <string name="notificationservice_privateNumber">Private Number</string>
     <string name="messagedbhandler_message_no_more_keep">The Message is no more kept in Pebble Messenger. Please check it by phone.</string>
     <string name="pref_cat_notif">Notification Options</string>
-    <string name="pref_cat_notif_summ">the function of displaying the notifications on your Pebble.</string>
+    <string name="pref_cat_notif_summ">The function of displaying the notifications on your Pebble.</string>
+    <string name="pref_sms_enable">Send the new SMS to pebble</string>
+    <string name="pref_sms_enable_summ">Check to enable send the content of the SMS to pebble, this function need query your sms database.</string>
     <string name="pref_notif_screen_on">Notify when screen is on</string>
     <string name="pref_notif_screen_on_summ">When checked, notifications will be sent to the pebble even if the phone\'s screen is on.</string>
     <string name="pref_notif_message_scale">Font size on Pebble</string>

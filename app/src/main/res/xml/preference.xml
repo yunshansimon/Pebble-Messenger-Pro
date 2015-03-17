@@ -15,6 +15,11 @@
     <PreferenceCategory
         android:key="pref_cat_gen"
         android:title="@string/pref_cat_notif" >
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="pref_sms_enable"
+            android:summary="@string/pref_sms_enable"
+            android:title="@string/pref_sms_enable_summ"/>
         <com.yangtsaosoftware.pebblemessenger.activities.AppListPreference
             android:key="pref_package_list"
             android:defaultValue=""

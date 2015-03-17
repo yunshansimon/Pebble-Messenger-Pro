@@ -47,7 +47,7 @@ public class CallStateHandler extends BroadcastReceiver {
             inner_intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_CALL_INCOMING);
             if (incomingNumber != null && !incomingNumber.isEmpty()) {
                 inner_intent.putExtra(Constants.BROADCAST_PHONE_NUM,incomingNumber);
-                inner_intent.putExtra(Constants.BROADCAST_NAME,queryNameByNum(context,incomingNumber));
+                inner_intent.putExtra(Constants.BROADCAST_NAME,Constants.queryNameByNum(context,incomingNumber));
             } else {
                 inner_intent.putExtra(Constants.BROADCAST_PHONE_NUM,"0");
                 inner_intent.putExtra(Constants.BROADCAST_NAME,context.getString(R.string.notificationservice_privateNumber));
@@ -72,19 +72,5 @@ public class CallStateHandler extends BroadcastReceiver {
         }
     }
 
-    public  String queryNameByNum(Context context, String num) {
-        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(num));
-        Cursor cursor = context.getContentResolver().query(uri, new String[] {
-                ContactsContract.PhoneLookup.DISPLAY_NAME
-        }, null, null, null);
-        String nameString=context.getString(R.string.notificationservice_unknownperson);
-        if (cursor!=null){
-            if (cursor.moveToFirst()){
-                int columnNumberId=cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME);
-                nameString=cursor.getString(columnNumberId);
-            }
-            cursor.close();
-        }
-        return nameString;
-    }
+
 }
