@@ -146,7 +146,7 @@ public class SetupFragment extends Fragment implements TextToSpeech.OnInitListen
         ssb.append(test_PebbleFirmware_state(_context));
         ssb.append('\n');
         ssb.append(_context.getString(R.string.setup_accessibility_service_title));
-        ssb.append(test_AccessService_state(_context));
+       // ssb.append(test_AccessService_state(_context));
         ssb.append('\n');
         ssb.append(_context.getString(R.string.setup_watch_list));
         ssb.append(test_WatchList_state(_context));

@@ -41,7 +41,7 @@ public class SMSHandler extends BroadcastReceiver {
             if (messages != null){
                 address=messages[0].getOriginatingAddress();
                 address=Constants.queryNameByNum(context,address);
-                body=messages[0].getMessageBody();
+                body=messages[0].getDisplayMessageBody();
                 Intent inner_intent=new Intent(MessageProcessingService.class.getName());
                 inner_intent.putExtra(Constants.BROADCAST_COMMAND,Constants.BROADCAST_SMS_INCOMING);
                 inner_intent.putExtra(Constants.BROADCAST_SMS_BODY,address + ":" + body);

@@ -28,6 +28,7 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.PowerManager;
 import android.os.RemoteException;
+import android.provider.Telephony;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.support.v4.content.LocalBroadcastManager;
@@ -320,6 +321,15 @@ public class NotificationService extends NotificationListenerService {
     private void loadPrefs() {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         packages = sharedPref.getString(Constants.PREFERENCE_PACKAGE_LIST, "").split(",");
+        if (sharedPref.getBoolean(Constants.PREFERENCE_SMS_ENABLE,true)){
+            String smspackage= Telephony.Sms.getDefaultSmsPackage(getBaseContext());
+            for (int i=0;i<packages.length;i++){
+                if (packages[i].equalsIgnoreCase(smspackage)){
+                    packages[i]="";
+                    break;
+                }
+            }
+        }
         notifScreenOn = sharedPref.getBoolean(Constants.PREFERENCE_NOTIF_SCREEN_ON, true);
     }
 

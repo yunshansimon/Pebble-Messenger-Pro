@@ -68,8 +68,8 @@
     <string name="pref_black_background_summ">Check for black background and white chars on Pebble\'s screen.</string>
     <string name="pref_cat_general">General Setup</string>
     <string name="pref_cat_general_summ">Main setup function</string>
-    <string name="pref_general_accessibility">Open Pebble Messenger\'s Service</string>
-    <string name="pref_general_accessibility_summ">If the service is closed, this app will not work at all.</string>
+    <string name="pref_general_accessibility">Enable the authority of reading notifications.</string>
+    <string name="pref_general_accessibility_summ">Pebble will not received notifications until you open the authority.</string>
     <string name="pref_general_pebbleapp">Install PebbleMsgPro on watch.</string>
     <string name="pref_general_pebbleapp_summ">Install a cooperative app on your watch.</string>
     <string name="title_setting_activity">Options</string>
@@ -94,7 +94,7 @@
 
     <string name="setup_test_pebble_title">1. Check your Pebble status\t</string>
     <string name="setup_test_pebble_firmware">2. Check your Pebble firmware version\t</string>
-    <string name="setup_accessibility_service_title">3. Enable accessibility service\t</string>
+    <string name="setup_accessibility_service_title">3. The new version does not need accessibility service, but need the authority to read notifications.\t</string>
     <string name="setup_install_pebble_app">6. Check PebbleMsgPro status\t</string>
     <string name="setup_watch_list">4. Check Watch List\t</string>
     <string name="setup_font_base_status">5. Font data base status\t</string>
