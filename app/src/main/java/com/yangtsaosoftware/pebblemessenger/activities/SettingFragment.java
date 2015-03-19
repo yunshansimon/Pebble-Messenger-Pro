@@ -57,7 +57,7 @@ private static final int positionIndex=0;
         butAccessbility.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
-                startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+                startActivity(new Intent(Settings.ACTION_SECURITY_SETTINGS));
                 return true;
             }
         });

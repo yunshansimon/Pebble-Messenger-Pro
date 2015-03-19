@@ -140,8 +140,8 @@
     <string name="pref_cat_general">基本设置</string>
 
     <string name="pref_cat_general_summ" >程序能够使用的基础设置</string>
-    <string name="pref_general_accessibility">设置Pebble信使系统服务</string>
-    <string name="pref_general_accessibility_summ">如果服务被关闭，Pebble信使无法获取通知</string>
+    <string name="pref_general_accessibility">设置Pebble信使有权读取通知</string>
+    <string name="pref_general_accessibility_summ">“读取通知权限”如果被关闭，Pebble信使无法获取通知</string>
     <string name="pref_general_pebbleapp">在手表上安装Pebble端程序</string>
     <string name="pref_general_pebbleapp_summ">安装配合手机在手表上显示中文的程序</string>
     <string name="pref_notif_readmessage">允许读信息功能</string>
@@ -159,5 +159,7 @@
     <string name="setup_send_mail">发送邮件……</string>
     <string name="setup_send_to_author">发送检测报告</string>
     <string name="setup_tts_test">语音引擎检测</string>
+    <string name="pref_sms_enable">获取短信发往手表</string>
+    <string name="pref_sms_enable_summ">这是一个优化的手段，如果仅从通知中获取，很可能得到“X条未读”而不是短信内容</string>
 
 </resources>
